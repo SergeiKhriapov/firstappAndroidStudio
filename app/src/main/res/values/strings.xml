@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NMedia</string>
+    <string name="hello">NMedia! Sergei Khriapov!</string>
 </resources>
