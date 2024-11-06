@@ -2,4 +2,9 @@
 <resources>
     <string name="app_name">НМедиа</string>
     <string name="hello">НМедиа! Сергей Хряпов!</string>
+    <string name="avatar_description">описание_аватара</string>
+    <string name="menu_description">описание_меню</string>
+    <string name="build_description">описание_настроек</string>
+    <string name="share_description">описание_поделиться</string>
+    <string name="heart_description">описание_лайков</string>
 </resources>
