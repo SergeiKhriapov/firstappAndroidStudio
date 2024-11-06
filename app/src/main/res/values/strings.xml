@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">NMedia</string>
     <string name="hello">NMedia! Sergei Khriapov!</string>
+    <string name="avatar_description">TODO</string>
+    <string name="menu_description">TODO</string>
+    <string name="build_description">TODO</string>
+    <string name="share_description">TODO</string>
+    <string name="heart_description">TODO</string>
 </resources>
