@@ -14,11 +14,7 @@
         android:layout_height="wrap_content"
         android:text="@string/hello"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageView
         android:id="@+id/avatar"
@@ -32,7 +28,7 @@
         tools:src="@sample/posts.json/data/authorAvatar" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/author"
         android:layout_width="0dp"
         android:layout_height="@dimen/common_height_of_one_text_line"
         android:layout_marginTop="@dimen/common_spacing"
@@ -41,7 +37,6 @@
         android:maxLines="1"
         app:layout_constraintBottom_toTopOf="@id/published"
         app:layout_constraintEnd_toStartOf="@id/menu"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@id/avatar"
         app:layout_constraintTop_toBottomOf="@id/buildBarrier"
         app:layout_constraintTop_toTopOf="parent"
@@ -52,11 +47,10 @@
         android:layout_width="0dp"
         android:layout_height="@dimen/common_height_of_one_text_line"
         android:gravity="center_vertical"
-        android:maxLines="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintEnd_toStartOf="@id/menu"
         app:layout_constraintStart_toEndOf="@id/avatar"
-        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:layout_constraintTop_toBottomOf="@+id/author"
         tools:text="@sample/posts.json/data/published" />
 
     <ImageView
@@ -80,7 +74,7 @@
         android:contentDescription="@string/build_description"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@id/textView3"
+        app:layout_constraintStart_toEndOf="@id/author"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/baseline_build_24"
         app:tint="?colorControlNormal" />
@@ -159,9 +153,8 @@
         android:id="@+id/views"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="164dp"
         android:contentDescription="@string/share_description"
-        app:layout_constraintStart_toEndOf="@+id/shareCount"
+        app:layout_constraintEnd_toStartOf="@id/vCount"
         app:layout_constraintTop_toBottomOf="@id/contentBarrier"
         app:srcCompat="@drawable/baseline_visibility_24"
         app:tint="?colorControlNormal" />
@@ -171,8 +164,8 @@
         android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:gravity="center_vertical"
-        android:text="1000"
-        app:layout_constraintStart_toEndOf="@id/views"
+        android:text="100000000000000"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/contentBarrier" />
 
 
