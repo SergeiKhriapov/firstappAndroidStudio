@@ -20,7 +20,9 @@ class MainActivity : AppCompatActivity() {
             onView = { post -> viewModel.view(post.id) })
         binding.container.adapter = adapter
         viewModel.data.observe(this) { posts ->
-            adapter.list = posts
+            adapter.submitList(posts)
         }
     }
 }
+
+
