@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Widget.App.LikedCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="buttonTint">@color/like_color</item>
+    </style>
+
+    <style name="Widget.App.LikedButton" parent="Widget.Material3.Button.TextButton.Icon">
+        <item name="iconTint">@color/like_color</item>
+        <item name="android:minWidth">0dp</item>
+    </style>
+
+    <style name="Widget.App.MenuButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="iconPadding">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="iconSize">24dp</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
+        <item name="backgroundTint">?attr/colorSurface</item>
+
+        <!-- Убираем обводку и скругления -->
+        <item name="strokeColor">@android:color/transparent</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="cornerRadius">0dp</item>
+    </style>
+</resources>

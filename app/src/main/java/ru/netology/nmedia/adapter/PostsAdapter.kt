@@ -36,12 +36,11 @@ class PostsAdapter(
             content.text = post.content
             author.text = post.author
             published.text = post.published
-            like.setImageResource(
-                if (post.likeByMe) R.drawable.ic_baseline_favorite_24 else R.drawable.ic_baseline_favorite_border_24
-            )
-            likeCount.text = formatCount(post.likeCount)
-            shareCount.text = formatCount(post.shareCount)
-            viewsCount.text = formatCount(post.viewsCount)
+
+            like.isChecked = post.likeByMe
+            like.setText(formatCount(post.likeCount))
+            share.setText(formatCount(post.shareCount))
+            views.setText(formatCount(post.viewsCount))
 
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
