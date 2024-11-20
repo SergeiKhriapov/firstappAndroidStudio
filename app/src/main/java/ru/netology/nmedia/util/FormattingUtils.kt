@@ -1,4 +1,4 @@
-package ru.netology.nmedia.formatting
+package ru.netology.nmedia.util
 
 fun formatCount(count: Int): String {
     return when {

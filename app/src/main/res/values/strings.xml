@@ -1,9 +1,15 @@
 <resources>
     <string name="app_name">NMedia</string>
     <string name="hello">NMedia! Sergei Khriapov!</string>
-    <string name="menu_description">menu_description</string>
-    <string name="build_description">build_description</string>
-    <string name="share_description">share_description</string>
-    <string name="heart_description">heart_description</string>
-    <string name="avatar_description">avatar_description</string>
+    <string name="menu_description">Menu_description</string>
+    <string name="build_description">Build_description</string>
+    <string name="share_description">Share_description</string>
+    <string name="heart_description">Heart_description</string>
+    <string name="avatar_description">Avatar_description</string>
+    <string name="menu_remove">Remove</string>
+    <string name="post_text">Post Text</string>
+    <string name="menu_edit">Edit</string>
+    <string name="error_empty_content">Content post can\'t be empty</string>
+    <string name="description_post_save">New post</string>
+    <string name="edit_message">Edit message</string>
 </resources>

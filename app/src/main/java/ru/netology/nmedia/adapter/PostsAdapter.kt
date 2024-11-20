@@ -2,35 +2,25 @@ package ru.netology.nmedia.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.formatting.formatCount
-
-typealias LikeCallback = (Post) -> Unit
-typealias ShareCallback = (Post) -> Unit
-typealias ViewCallback = (Post) -> Unit
-
+import ru.netology.nmedia.util.formatCount
 
 class PostsAdapter(
-    private val onLike: LikeCallback,
-    private val onShare: ShareCallback,
-    private val onView: ViewCallback
+    private val onInteractionListener: OnInteractionListener
 ) : ListAdapter<Post, PostsAdapter.PostViewHolder>(PostDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         return PostViewHolder(
             CardPostBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
+                LayoutInflater.from(parent.context), parent, false
             ),
-            onLike,
-            onShare,
-            onView
+            onInteractionListener
         )
     }
 
@@ -40,9 +30,7 @@ class PostsAdapter(
 
     class PostViewHolder(
         private val binding: CardPostBinding,
-        private val onLike: LikeCallback,
-        private val onShare: ShareCallback,
-        private val onView: ViewCallback
+        private val onInteractionListener: OnInteractionListener
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(post: Post) = with(binding) {
             content.text = post.content
@@ -56,13 +44,38 @@ class PostsAdapter(
             viewsCount.text = formatCount(post.viewsCount)
 
             like.setOnClickListener {
-                onLike(post)
+                onInteractionListener.onLike(post)
             }
             share.setOnClickListener {
-                onShare(post)
+                onInteractionListener.onShare(post)
             }
             views.setOnClickListener {
-                onView(post)
+                onInteractionListener.onView(post)
+            }
+            menu.setOnClickListener {
+                PopupMenu(it.context, it).apply {
+                    inflate(R.menu.menu_options)
+                    setOnMenuItemClickListener {
+                        when (it.itemId) {
+                            R.id.remove -> {
+                                onInteractionListener.onRemove(post)
+                                true
+                            }
+
+                            R.id.edit -> {
+                                onInteractionListener.onEdit(post)
+                                true
+                            }
+
+                            R.id.cancellation -> {
+                                onInteractionListener.offEdit(post)
+                                true
+                            }
+
+                            else -> false
+                        }
+                    }
+                }.show()
             }
         }
     }

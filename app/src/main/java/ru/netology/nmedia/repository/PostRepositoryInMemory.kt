@@ -3,46 +3,17 @@ package ru.netology.nmedia.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dto.Post
+import java.time.LocalDateTime
 
 class PostRepositoryInMemory : PostRepository {
+    private var nextId = 1L
     private var posts = listOf(
         Post(
-            id = 1,
-            author = "Нетология. Университет интернет-профессий",
-            published = "06 ноября в 21:20",
-            content = "Привет, это новая Нетология! Когда-то Нетология начиналась с интенсивов по онлайн-маркетингу. Затем появились курсы по дизайну, разработке, аналитике и управлению. Мы растём сами и помогаем расти студентам: от новичков до уверенных профессионалов Но самое важное остаётся с нами: мы верим, что в каждом уже есть сила, которая заставляет хотеть больше, целиться выше, бежать быстрее. Наша миссия - помочь встать на путь роста и начать цепочку перемен - http://netolo.gy/lyb",
-            likeCount = 999,
-            shareCount = 999999,
-            viewsCount = 999999999
-        ),
-        Post(
-            id = 2,
-            author = "Петров Петя",
-            published = "13.11.2024",
-            content = "Android Inc. была основана в Пало-Альто, штат Калифорния, в октябре 2003 года Энди Рубином (основатель), Ричем Майнером[англ.] (сооснователь), Ником Сирсом и Крисом Уайтом. Рубин описал проект Android как обладающий «огромным потенциалом в разработке более умных мобильных устройств, которые лучше осведомлены о местонахождении и предпочтениях своего владельца». Первоначальные намерения компании заключались в разработке передовой операционной системы для цифровых камер, и это было основой ее предложения инвесторам в апреле 2004 года. Затем компания решила, что рынок камер недостаточно велик для достижения её целей, и пять месяцев спустя она представила Android как операционную систему для мобильных телефонов, которая будет конкурировать с Symbian и Microsoft Windows Mobile.",
-            likeCount = 0,
-            shareCount = 0,
-            viewsCount = 0
-        ),
-        Post(
-            id = 3,
-            author = "Сергей Хряпов",
-            published = "14.11.2024",
-            content = "Android Inc. была основана в Пало-Альто, штат Калифорния, в октябре 2003 года Энди Рубином (основатель), Ричем Майнером[англ.] (сооснователь), Ником Сирсом и Крисом Уайтом. Рубин описал проект Android как обладающий «огромным потенциалом в разработке более умных мобильных устройств, которые лучше осведомлены о местонахождении и предпочтениях своего владельца». Первоначальные намерения компании заключались в разработке передовой операционной системы для цифровых камер, и это было основой ее предложения инвесторам в апреле 2004 года. Затем компания решила, что рынок камер недостаточно велик для достижения её целей, и пять месяцев спустя она представила Android как операционную систему для мобильных телефонов, которая будет конкурировать с Symbian и Microsoft Windows Mobile.",
-            likeCount = 0,
-            shareCount = 0,
-            viewsCount = 0
-        ),
-        Post(
-            id = 4,
+            id = nextId++,
             author = "Яндекс",
             published = "Что такое RecyclerView 14.11.2024",
             content = "Компоненты RecyclerView\n" +
-                    "Сам RecyclerView умеет только отображать элементы в гибкой и масштабируемой сетке. Его работу обеспечивают дополнительные компоненты:\n" +
-                    "\n" +
-                    "\n ViewHolder. Объект, который определяет, как именно должен выглядеть элемент списка на экране. Также он отображает передаваемые в него данные: изображение в галерее, текст, кнопки и иконки как в ленте соцсетей. Именно экземпляры ViewHolder переиспользуются при исчезновении элементов списка из области видимости.\n" +
-                    "\n Adapter. Соединяет между собой данные, которые нужно поместить в список, и непосредственно RecyclerView. Именно Adapter передает в RecyclerView элементы списка и управляет созданием и переиспользованием их в ViewHolder и определением количества элементов списка.\n" +
-                    "\n LayoutManager. Отвечает за правильное размещение и отображение элементов списка на экране в зависимости от макета. Также обеспечивает правильную прокрутку списков.",
+                    "ка на экране в зависимости от макета. Также обеспечивает правильную прокрутку списков.",
             likeCount = 0,
             shareCount = 0,
             viewsCount = 0
@@ -52,7 +23,7 @@ class PostRepositoryInMemory : PostRepository {
 
     override fun getAll(): LiveData<List<Post>> = data
 
-    override fun like(id: Long) {
+    override fun likeById(id: Long) {
         posts = posts.map {
             if (it.id != id) it else it.copy(
                 likeByMe = !it.likeByMe,
@@ -62,7 +33,7 @@ class PostRepositoryInMemory : PostRepository {
         data.value = posts
     }
 
-    override fun share(id: Long) {
+    override fun shareById(id: Long) {
         posts = posts.map {
             if (it.id == id) {
                 it.copy(shareCount = it.shareCount + 1)
@@ -73,12 +44,29 @@ class PostRepositoryInMemory : PostRepository {
         data.value = posts
     }
 
-    override fun view(id: Long) {
+    override fun viewById(id: Long) {
         posts = posts.map {
             if (it.id == id) {
                 it.copy(viewsCount = it.viewsCount + 1)
             } else {
                 it
+            }
+        }
+        data.value = posts
+    }
+
+    override fun removeById(id: Long) {
+        posts = posts.filter { it.id != id }
+        data.value = posts
+    }
+
+    override fun save(post: Post) {
+        if (post.id == 0L) {
+            posts =
+                posts + listOf(post.copy(id = nextId++, author = "Me", published = "19.11.2024"))
+        } else {
+            posts = posts.map {
+                if (it.id !=post.id) it else it.copy(content = post.content)
             }
         }
         data.value = posts

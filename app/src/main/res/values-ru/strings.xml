@@ -2,9 +2,15 @@
 <resources>
     <string name="app_name">НМедиа</string>
     <string name="hello">НМедиа! Сергей Хряпов!</string>
-    <string name="avatar_description">описание_аватара</string>
-    <string name="menu_description">описание_меню</string>
-    <string name="build_description">описание_настроек</string>
-    <string name="share_description">описание_поделиться</string>
-    <string name="heart_description">описание_лайков</string>
+    <string name="avatar_description">Описание аватара</string>
+    <string name="menu_description">Описание меню</string>
+    <string name="build_description">Описание настроек</string>
+    <string name="share_description">Описание поделиться</string>
+    <string name="heart_description">Описание лайков</string>
+    <string name="menu_remove">Удалить пост</string>
+    <string name="post_text">Текст поста</string>
+    <string name="menu_edit">Редактировать</string>
+    <string name="error_empty_content">Содержимое поста не может быть пустым</string>
+    <string name="description_post_save">Новый пост</string>
+    <string name="edit_message">Редактирование</string>
 </resources>

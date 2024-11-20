@@ -1,10 +1,12 @@
 package ru.netology.nmedia.dto
 
+import java.time.LocalDateTime
+
 data class Post(
-    val id: Long,
-    val author: String,
-    val content: String,
-    val published: String,
+    val id: Long = 0L,
+    val author: String = "",
+    val content: String = "",
+    val published: String = "",
     val likeByMe: Boolean = false,
     val likeCount: Int = 0,
     val shareCount: Int = 0,
