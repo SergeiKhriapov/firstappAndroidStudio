@@ -1,6 +1,9 @@
 package ru.netology.nmedia.adapter
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
@@ -42,6 +45,16 @@ class PostsAdapter(
             share.setText(formatCount(post.shareCount))
             views.setText(formatCount(post.viewsCount))
 
+            if (!post.video.isNullOrEmpty()) {
+                videoPreviewImage.visibility = View.VISIBLE
+                videoPreviewImage.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
+                    itemView.context.startActivity(intent)
+                }
+            } else {
+                videoPreviewImage.visibility = View.GONE
+            }
+
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
             }
@@ -66,10 +79,10 @@ class PostsAdapter(
                                 true
                             }
 
-                            R.id.cancellation -> {
+                            /*R.id.cancellation -> {
                                 onInteractionListener.offEdit(post)
                                 true
-                            }
+                            }*/
 
                             else -> false
                         }

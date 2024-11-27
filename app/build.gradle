@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId "ru.netology.nmedia"
         minSdk 23
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 
@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+    implementation libs.androidx.activity
     def core_version = "1.15.0"
     def appcompat_version = "1.7.0"
     def mdc_version = "1.12.0"

@@ -4,100 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/edit_message"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="0dp"
         tools:listitem="@layout/card_post" />
 
-    <EditText
-        android:id="@+id/content"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:hint="@string/description_post_save"
-        android:importantForAutofill="no"
-        android:inputType="textMultiLine"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/save"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/barrier4"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <ImageButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_save_48"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/barrier4" />
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="top"
-        app:constraint_referenced_ids="content,save" />
-
-    <ImageButton
-        android:id="@+id/cancellation"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_cancellation_48"
-        app:layout_constraintBottom_toTopOf="@id/barrier4"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <ImageButton
-        android:id="@+id/pencil"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/baseline_edit_24"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/edit_message" />
-
-    <EditText
-        android:id="@+id/edit_content"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:importantForAutofill="no"
-        android:inputType="textMultiLine"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@id/barrier4"
-        app:layout_constraintEnd_toStartOf="@id/cancellation"
-        app:layout_constraintStart_toEndOf="@id/pencil"
-        app:layout_constraintTop_toTopOf="@id/edit_message"
-        tools:layout_editor_absoluteX="0dp" />
-
-    <TextView
-        android:id="@+id/edit_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/edit_message"
-        android:textColor="#715BF1"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@id/edit_content"
-        app:layout_constraintStart_toEndOf="@id/pencil" />
-
-    <androidx.constraintlayout.widget.Group
-        android:id="@+id/editMessageGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:constraint_referenced_ids="edit_message, edit_content, pencil, cancellation" />
-
+        app:srcCompat="@drawable/ic_add_24_dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

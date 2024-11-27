@@ -21,10 +21,9 @@
         <item name="iconSize">24dp</item>
         <item name="iconTint">?attr/colorOnSurface</item>
         <item name="backgroundTint">?attr/colorSurface</item>
-
-        <!-- Убираем обводку и скругления -->
         <item name="strokeColor">@android:color/transparent</item>
         <item name="strokeWidth">0dp</item>
         <item name="cornerRadius">0dp</item>
     </style>
+
 </resources>

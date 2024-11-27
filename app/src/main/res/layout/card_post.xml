@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="@dimen/common_spacing"
-    tools:context=".MainActivity">
+    tools:context=".activity.MainActivity">
 
     <ImageView
         android:id="@+id/avatar"
@@ -14,10 +14,9 @@
         android:layout_height="@dimen/avatar_size"
         android:layout_marginTop="@dimen/common_spacing"
         android:contentDescription="@string/avatar_description"
+        android:src="@drawable/ic_launcher_foreground"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buildBarrier"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:src="@sample/posts.json/data/authorAvatar" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/author"
@@ -30,7 +29,6 @@
         app:layout_constraintBottom_toTopOf="@id/published"
         app:layout_constraintEnd_toStartOf="@id/menu"
         app:layout_constraintStart_toEndOf="@id/avatar"
-        app:layout_constraintTop_toBottomOf="@id/buildBarrier"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="@sample/posts.json/data/author" />
 
@@ -47,18 +45,17 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/menu"
+        style="@style/Widget.App.MenuButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/Widget.App.MenuButton"
         android:layout_marginTop="@dimen/common_spacing"
         android:contentDescription="@string/menu_description"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buildBarrier"
-        app:layout_constraintTop_toTopOf="parent"
         app:icon="@drawable/ic_baseline_more_vert_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:tint="?colorControlNormal" />
 
-    <ImageView
+    <!--<ImageView
         android:id="@+id/build"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -69,7 +66,7 @@
         app:layout_constraintStart_toEndOf="@id/author"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_baseline_build_17"
-        app:tint="?colorControlNormal" />
+        app:tint="?colorControlNormal" />-->
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/headerBarrier"
@@ -87,20 +84,30 @@
         app:layout_constraintTop_toBottomOf="@id/headerBarrier"
         tools:text="@sample/posts.json/data/content" />
 
-    <androidx.constraintlayout.widget.Barrier
+    <ImageView
+        android:id="@+id/videoPreviewImage"
+        android:layout_width="wrap_content"
+        android:layout_height="210dp"
+        android:contentDescription="videoPreviewImage"
+        android:scaleType="centerCrop"
+        android:src="@drawable/video"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/content" />
+
+    <!--<androidx.constraintlayout.widget.Barrier
         android:id="@+id/buildBarrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="build" />
+        app:constraint_referenced_ids="build" />-->
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/contentBarrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="content" />
-
+        app:constraint_referenced_ids="videoPreviewImage" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/like"
@@ -113,7 +120,7 @@
         app:icon="@drawable/like_selector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/contentBarrier"
-        app:tint="?colorControlNormal" />
+        app:tint="@color/black" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/share"
@@ -123,12 +130,11 @@
         android:layout_marginStart="10dp"
         android:contentDescription="@string/share_description"
         android:padding="16dp"
+        android:textColor="?colorControlNormal"
+        app:icon="@drawable/ic_baseline_share_24"
         app:layout_constraintStart_toEndOf="@+id/like"
         app:layout_constraintTop_toBottomOf="@id/contentBarrier"
-        app:icon="@drawable/ic_baseline_share_24"
-        app:tint="?colorControlNormal"
-        android:textColor="?colorControlNormal"
-        />
+        app:tint="?colorControlNormal" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/views"
@@ -137,12 +143,11 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/share_description"
         android:padding="16dp"
+        android:textColor="?colorControlNormal"
+        app:icon="@drawable/ic_baseline_visibility_24"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/contentBarrier"
-        app:icon="@drawable/ic_baseline_visibility_24"
-        app:tint="?colorControlNormal"
-        android:textColor="?colorControlNormal"
-        />
+        app:tint="?colorControlNormal" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/iconBarrier"
@@ -155,10 +160,19 @@
         android:layout_width="0dp"
         android:layout_height="2dp"
         android:layout_marginTop="8dp"
-        android:background="@android:color/holo_red_light"
+        android:background="@color/endGray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/iconBarrier" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/endGray"
+        app:layout_constraintTop_toTopOf="parent"
+
+        />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

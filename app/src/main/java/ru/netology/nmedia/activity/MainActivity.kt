@@ -1,10 +1,13 @@
-package ru.netology.nmedia
+package ru.netology.nmedia.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.launch
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.ActivityMainBinding
@@ -15,6 +18,14 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: PostViewModel by viewModels()
+    val newPostLauncher = registerForActivityResult(NewPostContract) { result ->
+        result ?: return@registerForActivityResult
+        viewModel.saveContent(result)
+    }
+    val editPostLauncher = registerForActivityResult(EditPostContract) { result ->
+        result ?: return@registerForActivityResult
+        viewModel.saveContent(result)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +39,14 @@ class MainActivity : AppCompatActivity() {
 
             override fun onShare(post: Post) {
                 viewModel.shareById(post.id)
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, post.content)
+                    type = "text/plain"
+                }
+                val shareIntent =
+                    Intent.createChooser(intent, getString(R.string.chooser_share_post))
+                startActivity(shareIntent)
             }
 
             override fun onView(post: Post) {
@@ -39,19 +58,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onEdit(post: Post) {
-                viewModel.edit(post)
-                showEditMenu(post.content, binding)
-                binding.content.setText(post.content)
-            }
-
-            override fun offEdit(post: Post) {
-                viewModel.offEdit()
-                clearEditMenu(binding)
+                viewModel.edited.value = post
+                editPostLauncher.launch(post.content)
             }
         })
 
         binding.container.adapter = adapter
-
         viewModel.data.observe(this) { posts ->
             val new = adapter.currentList.size < posts.size
             adapter.submitList(posts) {
@@ -60,43 +72,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        viewModel.edited.observe(this) { editedPost ->
-            if (editedPost.id != 0L) {
-                showEditMenu(editedPost.content, binding)
-                binding.content.setText(editedPost.content)
-            } else {
-                clearEditMenu(binding)
-            }
-        }
-
         binding.save.setOnClickListener {
-            val text = binding.content.text.toString()
-            if (text.isBlank()) {
-                Toast.makeText(this, R.string.error_empty_content, Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-            viewModel.saveContent(text)
-            binding.content.text.clear()
-            AndroidUtils.hideKeyboard(it)
+            newPostLauncher.launch()
         }
-
-        binding.cancellation.setOnClickListener {
-            viewModel.offEdit()
-            binding.content.text.clear()
-            AndroidUtils.hideKeyboard(it)
-            clearEditMenu(binding)
-        }
-    }
-
-    private fun showEditMenu(content: String, binding: ActivityMainBinding) {
-        binding.editContent.setText(content)
-        binding.editMessageGroup.visibility = View.VISIBLE
-    }
-
-    private fun clearEditMenu(binding: ActivityMainBinding) {
-        binding.editContent.text.clear()
-        binding.editMessageGroup.visibility = View.GONE
-
     }
 }

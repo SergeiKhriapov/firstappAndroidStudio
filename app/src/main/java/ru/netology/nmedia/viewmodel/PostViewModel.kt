@@ -11,6 +11,8 @@ class PostViewModel : ViewModel() {
     private val repository = PostRepositoryInMemory()
     val data = repository.getAll()
     val edited = MutableLiveData(empty)
+
+
     fun saveContent(content: String) {
         edited.value?.let {
             repository.save(it.copy(content = content))
@@ -22,12 +24,4 @@ class PostViewModel : ViewModel() {
     fun shareById(id: Long) = repository.shareById(id)
     fun viewById(id: Long) = repository.viewById(id)
     fun removeById(id: Long) = repository.removeById(id)
-
-    fun edit(post: Post) {
-        edited.value = post
-    }
-
-    fun offEdit() {
-        edited.value = Post()
-    }
 }

@@ -10,30 +10,40 @@ class PostRepositoryInMemory : PostRepository {
         Post(
             id = nextId++,
             author = "Яндекс",
-            published = "Что такое RecyclerView 14.11.2024",
-            content = "Компоненты RecyclerView www.1c.ru\n",
+            published = "14.11.2024",
+            content = "Пустой пост\n",
             likeCount = 0,
             shareCount = 0,
-            viewsCount = 0
+            viewsCount = 0,
         ),
         Post(
             id = nextId++,
-            author = "Нетология",
+            author = "Яндекс",
             published = "14.11.2024",
-            content = "Задача\n" +
-                    "На лекции мы стилизовали Like в виде CheckBox, а затем в виде Button. Вам также нужно стилизовать кнопки Share и Options — меню с тремя точками.\n" +
-                    "\n" +
-                    "Изучите документацию на компоненты Buttons, чтобы реализовать работу этих элементов. Обратите внимание: это не CheckBox.\n" +
-                    "\n" +
-                    "Текст можно задавать сразу через атрибуты кнопки (количество лайков, шеринга). Поэтому от TextView можно будет избавиться.\n" +
-                    "\n" +
-                    "Создайте отдельный стиль, как мы сделали на лекции, и назначайте его кнопкам.\n" +
-                    "\n" +
-                    "Подсказка\n" +
-                    "В качестве результата пришлите ссылку на ваш GitHub-проект в личном кабинете студента на сайте netology.ru.",
+            content = "Компоненты RecyclerView www.1c.ru\n",
             likeCount = 0,
             shareCount = 0,
-            viewsCount = 0
+            viewsCount = 0,
+            video = "https://www.youtube.com/watch?v=WhWc3b3KhnY"
+        ),
+        Post(
+            id = nextId++,
+            author = "Яндекс",
+            published = "14.11.2015",
+            content = "Пустой пост два\n",
+            likeCount = 0,
+            shareCount = 0,
+            viewsCount = 0,
+        ),
+        Post(
+            id = nextId++,
+            author = "Яндекс",
+            published = "14.11.2024",
+            content = "Мультик 12 месяцев\n",
+            likeCount = 0,
+            shareCount = 0,
+            viewsCount = 0,
+            video = "https://www.youtube.com/watch?v=_l_dNQnN0uU"
         )
     )
     private val data = MutableLiveData(posts)
@@ -83,7 +93,7 @@ class PostRepositoryInMemory : PostRepository {
                 posts + listOf(post.copy(id = nextId++, author = "Me", published = "19.11.2024"))
         } else {
             posts = posts.map {
-                if (it.id !=post.id) it else it.copy(content = post.content)
+                if (it.id != post.id) it else it.copy(content = post.content)
             }
         }
         data.value = posts
