@@ -8,16 +8,26 @@ import ru.netology.nmedia.repository.PostRepositoryInMemory
 private val empty = Post()
 
 class PostViewModel : ViewModel() {
-    private val repository = PostRepositoryInMemory()
-    val data = repository.getAll()
-    val edited = MutableLiveData(empty)
 
+    private val repository = PostRepositoryInMemory()
+
+    val data = repository.getAll()
+
+    private val _edited = MutableLiveData(empty)
+
+    fun startEditing(post: Post) {
+        _edited.value = post
+    }
+
+    fun cancelEditing() {
+        _edited.value = empty
+    }
 
     fun saveContent(content: String) {
-        edited.value?.let {
+        _edited.value?.let {
             repository.save(it.copy(content = content))
         }
-        edited.value = empty
+        cancelEditing()
     }
 
     fun likeById(id: Long) = repository.likeById(id)

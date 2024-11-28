@@ -1,7 +1,5 @@
 package ru.netology.nmedia.adapter
 
-import android.content.Intent
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -48,8 +46,9 @@ class PostsAdapter(
             if (!post.video.isNullOrEmpty()) {
                 videoPreviewImage.visibility = View.VISIBLE
                 videoPreviewImage.setOnClickListener {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
-                    itemView.context.startActivity(intent)
+                    onInteractionListener.onVideoClick(post)
+                    /*val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
+                    itemView.context.startActivity(intent)*/
                 }
             } else {
                 videoPreviewImage.visibility = View.GONE
@@ -78,11 +77,6 @@ class PostsAdapter(
                                 onInteractionListener.onEdit(post)
                                 true
                             }
-
-                            /*R.id.cancellation -> {
-                                onInteractionListener.offEdit(post)
-                                true
-                            }*/
 
                             else -> false
                         }
