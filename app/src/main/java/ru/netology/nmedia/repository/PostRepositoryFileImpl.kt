@@ -12,8 +12,6 @@ class PostRepositoryFileImpl(private val context: Context) : PostRepository {
         private val gson = Gson()
         private val token = TypeToken.getParameterized(List::class.java, Post::class.java).type
         private const val FILENAME = "posts.json"
-        private const val KEY = "posts"
-        private const val ID = "id"
     }
 
     private var nextId = 1L
@@ -78,7 +76,7 @@ class PostRepositoryFileImpl(private val context: Context) : PostRepository {
         if (file.exists()) {
             context.openFileInput(FILENAME).bufferedReader().use {
                 posts = gson.fromJson(it, token)
-                nextId = posts.maxOf { it.id } + 1
+                nextId = (posts.maxOfOrNull { it.id } ?: 0L) + 1
                 data.value = posts
             }
         } else {
