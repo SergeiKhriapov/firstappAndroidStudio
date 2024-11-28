@@ -1,10 +1,21 @@
 package ru.netology.nmedia.repository
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import ru.netology.nmedia.dto.Post
 
-class PostRepositoryInMemory : PostRepository {
+class PostRepositoryFileImpl(private val context: Context) : PostRepository {
+    companion object {
+        private val gson = Gson()
+        private val token = TypeToken.getParameterized(List::class.java, Post::class.java).type
+        private const val FILENAME = "posts.json"
+        private const val KEY = "posts"
+        private const val ID = "id"
+    }
+
     private var nextId = 1L
     private var posts = listOf(
         Post(
@@ -56,7 +67,24 @@ class PostRepositoryInMemory : PostRepository {
             video = "https://www.youtube.com/watch?v=_l_dNQnN0uU"
         )
     )
+        set(value) {
+            field = value
+            sync()
+        }
     private val data = MutableLiveData(posts)
+
+    init {
+        val file = context.filesDir.resolve(FILENAME)
+        if (file.exists()) {
+            context.openFileInput(FILENAME).bufferedReader().use {
+                posts = gson.fromJson(it, token)
+                nextId = posts.maxOf { it.id } + 1
+                data.value = posts
+            }
+        } else {
+            sync()
+        }
+    }
 
     override fun getAll(): LiveData<List<Post>> = data
 
@@ -107,5 +135,11 @@ class PostRepositoryInMemory : PostRepository {
             }
         }
         data.value = posts
+    }
+
+    private fun sync() {
+        context.openFileOutput(FILENAME, Context.MODE_PRIVATE).bufferedWriter().use {
+            it.write(gson.toJson(posts))
+        }
     }
 }

@@ -47,8 +47,6 @@ class PostsAdapter(
                 videoPreviewImage.visibility = View.VISIBLE
                 videoPreviewImage.setOnClickListener {
                     onInteractionListener.onVideoClick(post)
-                    /*val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
-                    itemView.context.startActivity(intent)*/
                 }
             } else {
                 videoPreviewImage.visibility = View.GONE
