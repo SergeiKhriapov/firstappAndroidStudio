@@ -77,6 +77,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         binding.save.setOnClickListener {
+            viewModel.cancelEditing()
             newPostLauncher.launch()
         }
     }
