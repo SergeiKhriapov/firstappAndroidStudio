@@ -61,6 +61,11 @@ class PostsAdapter(
             views.setOnClickListener {
                 onInteractionListener.onView(post)
             }
+
+            content.setOnClickListener {
+                onInteractionListener.focusOnPost(post)
+            }
+
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.menu_options)

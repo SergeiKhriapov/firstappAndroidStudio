@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.NewPostActivity">
+    tools:context=".fragment.NewPostFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -54,6 +54,7 @@
             android:layout_marginTop="8dp"
             android:background="@android:color/transparent"
             android:gravity="start|top"
+            android:focusable="true"
             android:inputType="textMultiLine"
             android:textSize="16sp" />
     </RelativeLayout>

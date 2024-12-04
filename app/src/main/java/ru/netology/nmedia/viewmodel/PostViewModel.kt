@@ -2,6 +2,7 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.repository.PostRepositoryFileImpl
@@ -15,6 +16,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val data = repository.getAll()
 
     private val _edited = MutableLiveData(empty)
+
+    val edited: LiveData<Post?>
+        get() = _edited
 
     fun startEditing(post: Post) {
         _edited.value = post
