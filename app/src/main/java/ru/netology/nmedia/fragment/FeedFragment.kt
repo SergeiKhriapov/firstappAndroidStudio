@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -22,9 +23,7 @@ class FeedFragment : Fragment() {
 
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val binding: FragmentFeedBinding = FragmentFeedBinding.inflate(inflater, container, false)
         val adapter = PostsAdapter(object : OnInteractionListener {
@@ -62,9 +61,15 @@ class FeedFragment : Fragment() {
                 startActivity(intent)
             }
 
-            override fun focusOnPost(post: Post) {
+            /*override fun focusOnPost(post: Post) {
                 viewModel.startEditing(post)
                 findNavController().navigate(R.id.action_feedFragment_to_focusOnPostFragment)
+            }*/
+            override fun focusOnPost(post: Post) {
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_focusOnPostFragment,
+                    bundleOf("idFocusPost" to post.id)
+                )
             }
         })
 

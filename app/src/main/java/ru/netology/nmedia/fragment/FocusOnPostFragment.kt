@@ -25,10 +25,13 @@ class FocusOnPostFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val binding = FragmentFocusOnPostBinding.inflate(inflater, container, false)
+        /*viewModel.data.observe(viewLifecycleOwner) { posts ->
+            val post = posts.find { it.id == viewModel.edited.value?.id }*/
         viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val post = posts.find { it.id == viewModel.edited.value?.id }
+            val currentPost =
+                posts.find { it.id == arguments?.getLong("idFocusPost") } ?: return@observe
 
-            post?.let { currentPost ->
+            currentPost?.let { currentPost ->
                 binding.content.text = currentPost.content
                 binding.author.text = currentPost.author
                 binding.published.text = currentPost.published
@@ -50,10 +53,10 @@ class FocusOnPostFragment : Fragment() {
 
                 binding.share.setOnClickListener {
                     viewModel.shareById(currentPost.id)
-                    viewModel.shareById(post.id)
+                    viewModel.shareById(currentPost.id)
                     val intent = Intent().apply {
                         action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, post.content)
+                        putExtra(Intent.EXTRA_TEXT, currentPost.content)
                         type = "text/plain"
                     }
                     val shareIntent =
