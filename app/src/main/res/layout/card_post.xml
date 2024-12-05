@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="@dimen/common_spacing"
-    tools:context=".activity.MainActivity">
+    tools:context=".fragment.FeedFragment">
 
     <ImageView
         android:id="@+id/avatar"
@@ -55,18 +55,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?colorControlNormal" />
 
-    <!--<ImageView
-        android:id="@+id/build"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:layout_marginEnd="4dp"
-        android:contentDescription="@string/build_description"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/author"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_baseline_build_17"
-        app:tint="?colorControlNormal" />-->
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/headerBarrier"
