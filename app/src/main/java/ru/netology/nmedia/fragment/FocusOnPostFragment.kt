@@ -95,7 +95,6 @@ class FocusOnPostFragment : Fragment() {
             viewModel.cancelEditing()
             findNavController().navigateUp()
         }
-
         return binding.root
     }
 }

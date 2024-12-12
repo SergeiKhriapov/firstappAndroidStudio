@@ -5,6 +5,8 @@ data class Post(
     val author: String = "",
     val content: String = "",
     val published: String = "",
+   /* val published: String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+*/
     val likeByMe: Boolean = false,
     val likeCount: Int = 0,
     val shareCount: Int = 0,
