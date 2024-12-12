@@ -24,9 +24,6 @@ class NewPostFragment : Fragment() {
     ): View {
         val binding = FragmentNewPostBinding.inflate(inflater, container, false)
         arguments?.textArg?.let { binding.edit.setText(it) }
-
-        /*binding.edit.focusAndShowKeyboard()*/
-
         binding.edit.post {
             binding.edit.focusAndShowKeyboard()
         }

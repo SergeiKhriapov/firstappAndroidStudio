@@ -43,6 +43,7 @@ class PostRepositorySQLiteImpl(
     }
 
     override fun shareById(id: Long) {
+        dao.shareById(id)
         posts = posts.map {
             if (it.id == id) {
                 it.copy(shareCount = it.shareCount + 1)
@@ -54,6 +55,7 @@ class PostRepositorySQLiteImpl(
     }
 
     override fun viewById(id: Long) {
+        dao.viewById(id)
         posts = posts.map {
             if (it.id == id) {
                 it.copy(viewsCount = it.viewsCount + 1)

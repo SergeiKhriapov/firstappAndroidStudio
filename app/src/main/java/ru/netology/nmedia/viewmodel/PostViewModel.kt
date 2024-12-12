@@ -7,8 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryFileImpl
 import ru.netology.nmedia.repository.PostRepositorySQLiteImpl
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val empty = Post()
 
@@ -32,10 +34,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun cancelEditing() {
         _edited.value = empty
     }
-
     fun saveContent(content: String) {
         _edited.value?.let {
-            repository.save(it.copy(content = content))
+            repository.save(
+                it.copy(
+                    content = content,
+                    published = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+                )
+            )
         }
         cancelEditing()
     }

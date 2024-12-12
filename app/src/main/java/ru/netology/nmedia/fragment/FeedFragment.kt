@@ -21,7 +21,6 @@ class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -61,10 +60,6 @@ class FeedFragment : Fragment() {
                 startActivity(intent)
             }
 
-            /*override fun focusOnPost(post: Post) {
-                viewModel.startEditing(post)
-                findNavController().navigate(R.id.action_feedFragment_to_focusOnPostFragment)
-            }*/
             override fun focusOnPost(post: Post) {
                 findNavController().navigate(
                     R.id.action_feedFragment_to_focusOnPostFragment,
@@ -75,10 +70,10 @@ class FeedFragment : Fragment() {
 
         binding.container.adapter = adapter
         viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val new = adapter.currentList.size < posts.size
+            val newPostAdded = adapter.currentList.size < posts.size
             adapter.submitList(posts) {
-                if (new) {
-                    binding.container.smoothScrollToPosition(posts.size)
+                if (newPostAdded) {
+                    binding.container.smoothScrollToPosition(0)
                 }
             }
         }

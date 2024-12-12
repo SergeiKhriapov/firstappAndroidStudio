@@ -69,7 +69,7 @@ class PostDaoImpl(private val db: SQLiteDatabase) : PostDao {
         val values = ContentValues().apply {
             put(PostColumns.COLUMN_AUTHOR, "Me")
             put(PostColumns.COLUMN_CONTENT, post.content)
-            put(PostColumns.COLUMN_PUBLISHED, "now")
+            put(PostColumns.COLUMN_PUBLISHED, post.published)
             put(PostColumns.COLUMN_LIKE_BY_ME, if (post.likeByMe) 1 else 0)
             put(PostColumns.COLUMN_LIKE_COUNT, post.likeCount)
             put(PostColumns.COLUMN_SHARE_COUNT, post.shareCount)
