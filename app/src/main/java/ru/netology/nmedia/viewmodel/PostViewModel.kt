@@ -36,12 +36,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun getDraft(): String? = draftContent
 
     fun startEditing(post: Post) {
-        /* _edited.value = post*/
-        _edited.value = if (!draftContent.isNullOrBlank()) {
-            post.copy(content = draftContent!!)
-        } else {
-            post
-        }
+        _edited.value = post
     }
 
     fun cancelEditing() {
