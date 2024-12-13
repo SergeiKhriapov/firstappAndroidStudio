@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -27,6 +28,18 @@ class NewPostFragment : Fragment() {
         binding.edit.post {
             binding.edit.focusAndShowKeyboard()
         }
+        val draftContent = viewModel.getDraft()
+        arguments?.textArg?.let { binding.edit.setText(it) }
+            ?: draftContent?.let { binding.edit.setText(it) }
+        binding.edit.post {
+            binding.edit.setSelection(binding.edit.text.length)
+            binding.edit.focusAndShowKeyboard()
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            viewModel.saveDraft(binding.edit.text.toString())
+            findNavController().navigateUp()
+        }
 
         binding.ok.setOnClickListener {
             val text = binding.edit.text.toString()
@@ -38,9 +51,6 @@ class NewPostFragment : Fragment() {
                 viewModel.saveContent(text)
                 findNavController().navigateUp()
             }
-        }
-        binding.exit.setOnClickListener {
-            findNavController().navigateUp()
         }
         return binding.root
     }
