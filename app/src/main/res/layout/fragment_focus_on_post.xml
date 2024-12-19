@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/common_spacing"
+    tools:context=".fragment.FeedFragment">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/back"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/avatar"
+                android:layout_width="@dimen/avatar_size"
+                android:layout_height="@dimen/avatar_size"
+                android:contentDescription="@string/avatar_description"
+                android:src="@drawable/ic_launcher_foreground"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/author"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toStartOf="@id/menu"
+                app:layout_constraintStart_toEndOf="@id/avatar"
+                app:layout_constraintTop_toTopOf="@id/avatar"
+                tools:text="@sample/posts.json/data/author" />
+
+            <TextView
+                android:id="@+id/published"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toStartOf="@id/menu"
+                app:layout_constraintStart_toEndOf="@id/avatar"
+                app:layout_constraintTop_toBottomOf="@id/author"
+                tools:text="@sample/posts.json/data/published" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/menu"
+                style="@style/Widget.App.MenuButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/menu_description"
+                app:icon="@drawable/ic_baseline_more_vert_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/avatar" />
+
+            <TextView
+                android:id="@+id/content"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:autoLink="all"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/avatar"
+                tools:text="@sample/posts.json/data/content" />
+
+            <ImageView
+                android:id="@+id/videoPreviewImage"
+                android:layout_width="match_parent"
+                android:layout_height="210dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/video"
+                android:visibility="gone"
+
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/content"
+                app:layout_goneMarginTop="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/like"
+                style="@style/Widget.App.LikedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:contentDescription="@string/heart_description"
+                app:icon="@drawable/like_selector"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/videoPreviewImage"
+                app:tint="@color/black" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/share"
+                style="@style/Widget.App.LikedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/share_description"
+                android:textColor="@color/black"
+                app:icon="@drawable/ic_baseline_share_24"
+                app:layout_constraintStart_toEndOf="@id/like"
+                app:layout_constraintTop_toTopOf="@id/like"
+                app:tint="@color/black" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/views"
+                style="@style/Widget.App.LikedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                app:icon="@drawable/ic_baseline_visibility_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/like"
+                app:tint="@color/black" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_back_24" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

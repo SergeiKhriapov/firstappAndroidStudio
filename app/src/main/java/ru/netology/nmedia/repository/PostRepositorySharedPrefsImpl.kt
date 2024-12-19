@@ -1,10 +1,21 @@
 package ru.netology.nmedia.repository
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import ru.netology.nmedia.dto.Post
 
-class PostRepositoryInMemory : PostRepository {
+class PostRepositorySharedPrefsImpl(context: Context) : PostRepository {
+    companion object {
+        private val gson = Gson()
+        private val token = TypeToken.getParameterized(List::class.java, Post::class.java).type
+        private const val KEY = "posts"
+        private const val ID = "id"
+    }
+
+    private val prefs = context.getSharedPreferences("repo", Context.MODE_PRIVATE)
     private var nextId = 1L
     private var posts = listOf(
         Post(
@@ -25,9 +36,51 @@ class PostRepositoryInMemory : PostRepository {
             shareCount = 0,
             viewsCount = 0,
             video = "https://www.youtube.com/watch?v=WhWc3b3KhnY"
+        ),
+        Post(
+            id = nextId++,
+            author = "Яндекс",
+            published = "14.11.2015",
+            content = "Пустой пост два\n",
+            likeCount = 0,
+            shareCount = 0,
+            viewsCount = 0,
+        ),
+        Post(
+            id = nextId++,
+            author = "Яндекс",
+            published = "14.11.2024",
+            content = "Мультик 12 месяцев\n",
+            likeCount = 0,
+            shareCount = 0,
+            viewsCount = 0,
+            video = "https://www.youtube.com/watch?v=_l_dNQnN0uU"
+        ),
+        Post(
+            id = nextId++,
+            author = "Тест",
+            published = "14.11.2024",
+            content = "Мультик 12 месяцев\n",
+            likeCount = 0,
+            shareCount = 0,
+            viewsCount = 0,
+            video = "https://www.youtube.com/watch?v=_l_dNQnN0uU"
         )
     )
+        set(value) {
+            field = value
+            sync()
+        }
     private val data = MutableLiveData(posts)
+
+    init {
+        prefs.getString(KEY, null)?.let {
+            posts = gson.fromJson(it, token)
+            data.value = posts
+        }
+        nextId = prefs.getLong(ID, nextId)
+        sync()
+    }
 
     override fun getAll(): LiveData<List<Post>> = data
 
@@ -78,5 +131,13 @@ class PostRepositoryInMemory : PostRepository {
             }
         }
         data.value = posts
+    }
+
+    private fun sync() {
+        prefs.edit().apply {
+            putString(KEY, gson.toJson(posts))
+            putLong(ID, nextId)
+            apply()
+        }
     }
 }
