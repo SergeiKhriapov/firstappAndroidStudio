@@ -46,3 +46,6 @@ captures/
 
 ### Gradle ###
 !gradle/wrapper/gradle-wrapper.jar
+
+# Add google-services.json to ignore
+google-services.json

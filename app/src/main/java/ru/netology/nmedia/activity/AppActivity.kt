@@ -1,6 +1,9 @@
 package ru.netology.nmedia.activity
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -31,9 +34,26 @@ class AppActivity : AppCompatActivity() {
                 }
                 findNavController(R.id.fragment_container).navigate(
                     R.id.action_feedFragment_to_newPostFragment,
-                    Bundle().apply { textArg = text }
+                    Bundle().apply {
+                        textArg = text
+                    }
                 )
             }
         }
+        requestNotificationsPermission()
+    }
+
+    private fun requestNotificationsPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+
+        val permission = Manifest.permission.POST_NOTIFICATIONS
+
+        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        requestPermissions(arrayOf(permission), 1)
     }
 }
