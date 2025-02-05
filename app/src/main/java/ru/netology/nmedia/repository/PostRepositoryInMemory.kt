@@ -25,35 +25,6 @@ class PostRepositoryInMemory : PostRepository {
             shareCount = 0,
             viewsCount = 0,
             video = "https://www.youtube.com/watch?v=WhWc3b3KhnY"
-        ),
-        Post(
-            id = nextId++,
-            author = "Яндекс",
-            published = "14.11.2015",
-            content = "Пустой пост два\n",
-            likeCount = 0,
-            shareCount = 0,
-            viewsCount = 0,
-        ),
-        Post(
-            id = nextId++,
-            author = "Яндекс",
-            published = "14.11.2024",
-            content = "Мультик 12 месяцев\n",
-            likeCount = 0,
-            shareCount = 0,
-            viewsCount = 0,
-            video = "https://www.youtube.com/watch?v=_l_dNQnN0uU"
-        ),
-        Post(
-            id = nextId++,
-            author = "Тест",
-            published = "14.11.2024",
-            content = "Мультик 12 месяцев\n",
-            likeCount = 0,
-            shareCount = 0,
-            viewsCount = 0,
-            video = "https://www.youtube.com/watch?v=_l_dNQnN0uU"
         )
     )
     private val data = MutableLiveData(posts)

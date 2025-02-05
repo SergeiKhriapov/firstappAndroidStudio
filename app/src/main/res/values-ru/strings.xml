@@ -18,4 +18,8 @@
     <string name="exitedit">Закрыть редактирование</string>
     <string name="edit">Редактирование:</string>
     <string name="new_post">Новый пост:</string>
+    <string name="back">Назад</string>
+    <string name="notification_user_liked">Пользователь %1$s оценил %2$s\'s пост</string>
+    <string name="channel_remote_name">Уведомления сервера</string>
+    <string name="channel_remote_description">Уведомления с удаленного сервера</string>
 </resources>
