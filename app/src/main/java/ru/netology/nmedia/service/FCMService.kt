@@ -69,7 +69,6 @@ class FCMService : FirebaseMessagingService() {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
-
     }
 
     private fun handleNewPost(content: NewPost) {
