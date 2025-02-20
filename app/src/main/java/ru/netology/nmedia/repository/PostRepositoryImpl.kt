@@ -60,6 +60,13 @@ class PostRepositoryImpl/*(private val postDao: PostDao)*/ : PostRepository {
     }
 
     override fun removeById(id: Long) {
-        TODO("Not yet implemented")
+        val request: Request = Request.Builder()
+            .delete()
+            .url("${BASE_URL}/api/slow/posts/$id")
+            .build()
+
+        client.newCall(request)
+            .execute()
+            .close()
     }
 }
