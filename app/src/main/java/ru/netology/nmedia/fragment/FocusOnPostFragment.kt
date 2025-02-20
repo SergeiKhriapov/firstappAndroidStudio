@@ -14,6 +14,9 @@ import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentFocusOnPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class FocusOnPostFragment : Fragment() {
 
@@ -27,14 +30,24 @@ class FocusOnPostFragment : Fragment() {
         val binding = FragmentFocusOnPostBinding.inflate(inflater, container, false)
         /*viewModel.data.observe(viewLifecycleOwner) { posts ->
             val post = posts.find { it.id == viewModel.edited.value?.id }*/
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
+        /*viewModel.data.observe(viewLifecycleOwner) { posts ->
+            val currentPost =
+                posts.find { it.id == arguments?.getLong("idFocusPost") } ?: return@observe*/
+        viewModel.data.observe(viewLifecycleOwner) { feedModel ->
+            val posts = feedModel.posts
             val currentPost =
                 posts.find { it.id == arguments?.getLong("idFocusPost") } ?: return@observe
-
             currentPost?.let { currentPost ->
                 binding.content.text = currentPost.content
                 binding.author.text = currentPost.author
-                binding.published.text = currentPost.published
+
+                /*binding.published.text = currentPost.published*/
+                /*val date = Date(currentPost.published)*/
+
+                val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()).format(currentPost.published)
+                binding.published.text = formattedDate
+
                 binding.like.text = currentPost.likeCount.toString()
                 binding.share.text = currentPost.shareCount.toString()
                 binding.views.text = currentPost.viewsCount.toString()

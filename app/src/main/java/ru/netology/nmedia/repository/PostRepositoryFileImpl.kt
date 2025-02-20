@@ -1,3 +1,4 @@
+/*
 package ru.netology.nmedia.repository
 
 import android.content.Context
@@ -84,7 +85,10 @@ class PostRepositoryFileImpl(private val context: Context) : PostRepository {
         }
     }
 
-    override fun getAll(): LiveData<List<Post>> = data
+    */
+/*override fun getAll(): LiveData<List<Post>> = data*//*
+
+    override fun getAll(): List<Post> = posts
 
     override fun likeById(id: Long) {
         posts = posts.map {
@@ -140,4 +144,4 @@ class PostRepositoryFileImpl(private val context: Context) : PostRepository {
             it.write(gson.toJson(posts))
         }
     }
-}
+}*/

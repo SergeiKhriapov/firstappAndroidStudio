@@ -8,17 +8,17 @@ import ru.netology.nmedia.dto.Post
 data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
-    val author: String = "",
+    val author: String = "Нетолгия",
     val content: String = "",
-    val published: String = "",
-    val likeByMe: Boolean = false,
-    val likeCount: Int = 0,
+    val published: Long = 0,
+    val likedByMe: Boolean = false,
+    val likes: Int = 0,
     val shareCount: Int = 0,
     val viewsCount: Int = 0,
     val video: String? = null
 ) {
     fun toDto() =
-        Post(id, author, content, published, likeByMe, likeCount, shareCount, viewsCount, video)
+        Post(id, author, content, published, likedByMe, likes, shareCount, viewsCount, video)
 
     companion object {
         fun fromDto(post: Post) = PostEntity(
@@ -33,5 +33,4 @@ data class PostEntity(
             post.video
         )
     }
-
 }

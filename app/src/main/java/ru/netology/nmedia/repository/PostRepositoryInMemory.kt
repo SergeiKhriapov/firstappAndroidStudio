@@ -1,3 +1,4 @@
+/*
 package ru.netology.nmedia.repository
 
 import androidx.lifecycle.LiveData
@@ -15,8 +16,7 @@ class PostRepositoryInMemory : PostRepository {
             likeCount = 0,
             shareCount = 0,
             viewsCount = 0,
-        ),
-        Post(
+        ), Post(
             id = nextId++,
             author = "Яндекс",
             published = "14.11.2024",
@@ -29,7 +29,10 @@ class PostRepositoryInMemory : PostRepository {
     )
     private val data = MutableLiveData(posts)
 
-    override fun getAll(): LiveData<List<Post>> = data
+    */
+/*override fun getAll(): LiveData<List<Post>> = data*//*
+
+    override fun getAll(): List<Post> = posts
 
     override fun likeById(id: Long) {
         posts = posts.map {
@@ -79,4 +82,4 @@ class PostRepositoryInMemory : PostRepository {
         }
         data.value = posts
     }
-}
+}*/

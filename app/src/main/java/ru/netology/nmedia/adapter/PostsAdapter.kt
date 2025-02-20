@@ -11,6 +11,9 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.formatCount
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener
@@ -36,7 +39,11 @@ class PostsAdapter(
         fun bind(post: Post) = with(binding) {
             content.text = post.content
             author.text = post.author
-            published.text = post.published
+            val date = Date(post.published)
+            val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
+            published.text = formattedDate
+
+            /*published.text = post.published*/
 
             like.isChecked = post.likeByMe
             like.setText(formatCount(post.likeCount))
