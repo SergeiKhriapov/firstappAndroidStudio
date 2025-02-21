@@ -9,13 +9,11 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.liveData
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentFocusOnPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 class FocusOnPostFragment : Fragment() {
@@ -48,10 +46,10 @@ class FocusOnPostFragment : Fragment() {
                     Locale.getDefault()).format(currentPost.published)
                 binding.published.text = formattedDate
 
-                binding.like.text = currentPost.likeCount.toString()
+                binding.like.text = currentPost.likes.toString()
                 binding.share.text = currentPost.shareCount.toString()
                 binding.views.text = currentPost.viewsCount.toString()
-                binding.like.isChecked = currentPost.likeByMe
+                binding.like.isChecked = currentPost.likedByMe
 
                 if (!currentPost.video.isNullOrEmpty()) {
                     binding.videoPreviewImage.visibility = View.VISIBLE

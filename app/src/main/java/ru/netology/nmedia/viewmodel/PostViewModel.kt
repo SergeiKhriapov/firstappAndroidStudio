@@ -11,7 +11,14 @@ import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import kotlin.concurrent.thread
 
-private val empty = Post()
+private val empty = Post(
+    id = 0,
+    author = "",
+    content = "",
+    published = 0,
+    likedByMe = false,
+    likes = 0,
+)
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository = PostRepositoryImpl()
@@ -60,23 +67,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _edited.postValue(empty)
     }
 
-    /*fun saveContent(content: String) {
-        thread {
-            _edited.value?.let {
-                val currentTime = System.currentTimeMillis()
-                repository.save(
-                    it.copy(
-                        content = content,
-                        published = currentTime
-                    )
-                )
-                _postCreated.postValue(Unit)
-                loadPosts()
-            }
-            cancelEditing()
-            draftContent = null
-        }
-    }*/
     fun saveContent(content: String) {
         edited.value?.let {
             thread {

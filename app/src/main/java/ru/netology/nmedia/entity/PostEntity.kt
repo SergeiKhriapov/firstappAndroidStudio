@@ -26,8 +26,8 @@ data class PostEntity(
             post.author,
             post.content,
             post.published,
-            post.likeByMe,
-            post.likeCount,
+            post.likedByMe,
+            post.likes,
             post.shareCount,
             post.viewsCount,
             post.video

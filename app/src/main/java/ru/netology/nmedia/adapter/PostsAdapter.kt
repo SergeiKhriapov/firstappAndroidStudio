@@ -45,8 +45,8 @@ class PostsAdapter(
 
             /*published.text = post.published*/
 
-            like.isChecked = post.likeByMe
-            like.setText(formatCount(post.likeCount))
+            like.isChecked = post.likedByMe
+            like.setText(formatCount(post.likes))
             share.setText(formatCount(post.shareCount))
             views.setText(formatCount(post.viewsCount))
 
