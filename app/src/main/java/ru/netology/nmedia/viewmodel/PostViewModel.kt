@@ -27,7 +27,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val data: LiveData<FeedModel> = _data
     private val _edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated: LiveData<Unit> = _postCreated
+    /*val postCreated: LiveData<Unit> = _postCreated*/
+    val postCreated: LiveData<Unit>
+        get() = _postCreated
 
     init {
         loadPosts()
