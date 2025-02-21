@@ -32,6 +32,7 @@ class AppActivity : AppCompatActivity() {
                         .show()
                     return@let
                 }
+
                 findNavController(R.id.fragment_container).navigate(
                     R.id.action_feedFragment_to_newPostFragment,
                     Bundle().apply {
@@ -47,13 +48,10 @@ class AppActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return
         }
-
         val permission = Manifest.permission.POST_NOTIFICATIONS
-
         if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
             return
         }
-
         requestPermissions(arrayOf(permission), 1)
     }
 }

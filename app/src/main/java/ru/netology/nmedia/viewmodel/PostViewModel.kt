@@ -1,7 +1,6 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -20,7 +19,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _data = MutableLiveData(FeedModel())
     val data: LiveData<FeedModel> = _data
     private val _edited = MutableLiveData(empty)
-
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
 
@@ -29,16 +27,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadPosts() {
-        thread {
-            _data.postValue(FeedModel(loading = true))
-            val newState = try {
-                val posts = repository.getAll()
-                FeedModel(posts = posts, empty = posts.isEmpty())
-            } catch (e: Exception) {
-                FeedModel(error = true)
+        _data.value = FeedModel(loading = true)
+        repository.getAllAsync(object : PostRepository.GetAllCallback {
+            override fun onSuccess(posts: List<Post>) {
+                _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
             }
-            _data.postValue(newState)
-        }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
 
     val edited: LiveData<Post?>
@@ -62,7 +60,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _edited.postValue(empty)
     }
 
-    fun saveContent(content: String) {
+    /*fun saveContent(content: String) {
         thread {
             _edited.value?.let {
                 val currentTime = System.currentTimeMillis()
@@ -78,6 +76,21 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             cancelEditing()
             draftContent = null
         }
+    }*/
+    fun saveContent(content: String) {
+        edited.value?.let {
+            thread {
+                val currentTime = System.currentTimeMillis()
+                repository.save(
+                    it.copy(
+                        content = content,
+                        published = currentTime
+                    )
+                )
+                _postCreated.postValue(Unit)
+            }
+        }
+        _edited.value = empty
     }
 
     fun likeById(id: Long) = repository.likeById(id)

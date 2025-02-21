@@ -9,6 +9,9 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nmedia.dto.Post
 import java.util.concurrent.TimeUnit
+import okhttp3.*
+
+import java.io.IOException
 
 class PostRepositoryImpl/*(private val postDao: PostDao)*/ : PostRepository {
     private val client = OkHttpClient.Builder()
@@ -24,15 +27,36 @@ class PostRepositoryImpl/*(private val postDao: PostDao)*/ : PostRepository {
 
     override fun getAll(): List<Post> {
         val request: Request = Request.Builder()
-            .get()
             .url("${BASE_URL}/api/slow/posts")
             .build()
-        val call = client.newCall(request)
-        val response = call.execute()
 
-        val responseBody = requireNotNull(response.body) { "body is null" }
+        return client.newCall(request)
+            .execute()
+            .let { it.body?.string() ?: throw RuntimeException("body is null") }
+            .let {
+                gson.fromJson(it, postsType.type)
+            }
+    }
+    override fun getAllAsync(callback: PostRepository.GetAllCallback) {
+        val request: Request = Request.Builder()
+            .url("${BASE_URL}/api/slow/posts")
+            .build()
 
-        return gson.fromJson(responseBody.string(), postsType)
+        client.newCall(request)
+            .enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    val body = response.body?.string() ?: throw RuntimeException("body is null")
+                    try {
+                        callback.onSuccess(gson.fromJson(body, postsType.type))
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onError(e)
+                }
+            })
     }
 
     override fun save(post: Post): Post {
