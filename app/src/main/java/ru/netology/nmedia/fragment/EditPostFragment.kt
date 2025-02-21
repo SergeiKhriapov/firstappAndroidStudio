@@ -36,7 +36,7 @@ class EditPostFragment : Fragment() {
         binding.ok.setOnClickListener {
             val updatedContent = binding.editPost.text.toString()
             if (updatedContent.isNotEmpty()) {
-                viewModel.saveContent(updatedContent)
+                viewModel.saveContent(binding.editPost.text.toString())
                 findNavController().popBackStack()
             } else {
                 Snackbar.make(binding.root, R.string.error_empty_content, Snackbar.LENGTH_SHORT)
