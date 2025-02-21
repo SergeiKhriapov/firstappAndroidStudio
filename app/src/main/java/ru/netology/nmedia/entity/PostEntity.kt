@@ -7,11 +7,11 @@ import ru.netology.nmedia.dto.Post
 @Entity
 data class PostEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,
-    val author: String = "Нетолгия",
-    val content: String = "",
-    val published: Long = 0,
-    val likedByMe: Boolean = false,
+    val id: Long,
+    val author: String,
+    val content: String,
+    val published: Long,
+    val likedByMe: Boolean,
     val likes: Int = 0,
     val shareCount: Int = 0,
     val viewsCount: Int = 0,
