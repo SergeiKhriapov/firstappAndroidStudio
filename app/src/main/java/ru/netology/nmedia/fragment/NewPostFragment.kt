@@ -16,8 +16,11 @@ import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.util.focusAndShowKeyboard
 import ru.netology.nmedia.viewmodel.PostViewModel
 
+/*class NewPostFragment : Fragment() {
+    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
+
 class NewPostFragment : Fragment() {
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
+    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,7 +41,6 @@ class NewPostFragment : Fragment() {
             viewModel.saveDraft(binding.edit.text.toString())
             findNavController().navigateUp()
         }
-
         binding.ok.setOnClickListener {
             val textSave = binding.edit.text.toString()
             if (textSave.isBlank()) {

@@ -27,7 +27,6 @@ class FeedFragment : Fragment() {
     ): View? {
         val binding: FragmentFeedBinding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        // Create an adapter with interaction listener
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onLike(post: Post) {
                 viewModel.likeById(post.id)
@@ -70,34 +69,23 @@ class FeedFragment : Fragment() {
             }
         })
 
-        // Observe LiveData from the ViewModel
+        binding.container.adapter = adapter
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.loadPosts()
+        }
+
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
             binding.empty.isVisible = state.empty
             binding.errorGroup.isVisible = state.error
             binding.progress.isVisible = state.loading
+            binding.swipeRefreshLayout.isRefreshing = state.loading
         }
 
-        // Set retry button action
         binding.retry.setOnClickListener {
             viewModel.loadPosts()
         }
 
-        // Bind the adapter to the RecyclerView
-        binding.container.adapter = adapter
-
-        // Handle post data updates and scroll to top if new post is added
-        viewModel.data.observe(viewLifecycleOwner) { feedModel ->
-            val posts = feedModel.posts
-            val newPostAdded = adapter.currentList.size < posts.size
-            adapter.submitList(posts) {
-                if (newPostAdded) {
-                    binding.container.smoothScrollToPosition(0)
-                }
-            }
-        }
-
-        // Handle save button action to navigate to create new post screen
         binding.save.setOnClickListener {
             viewModel.cancelEditing()
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)

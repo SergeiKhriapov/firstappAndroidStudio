@@ -27,7 +27,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val data: LiveData<FeedModel> = _data
     private val _edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
-    /*val postCreated: LiveData<Unit> = _postCreated*/
     val postCreated: LiveData<Unit>
         get() = _postCreated
 
@@ -85,7 +84,34 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _edited.value = empty
     }
 
-    fun likeById(id: Long) = repository.likeById(id)
+    fun likeById(id: Long) {
+        val posts = _data.value?.posts.orEmpty()
+        val post = posts.find { it.id == id } ?: return
+        val likedNow = !post.likedByMe
+        val updatedPost = post.copy(
+            likedByMe = likedNow,
+            likes = if (likedNow) post.likes + 1 else post.likes - 1
+        )
+
+        _data.postValue(_data.value?.copy(posts = _data.value?.posts?.map { currentPost ->
+            if (currentPost.id == id) updatedPost else currentPost
+        } ?: emptyList()))
+
+        repository.likeById(id, object : PostRepository.LikeCallback {
+            override fun onSuccess(serverPost: Post) {
+
+                _data.postValue(_data.value?.copy(posts = _data.value?.posts?.map { currentPost ->
+                    if (currentPost.id == id) serverPost else currentPost
+                } ?: emptyList()))
+            }
+
+            override fun onError(e: Exception) {
+
+                _data.postValue(_data.value?.copy(posts = posts))
+            }
+        })
+    }
+
     fun shareById(id: Long) = repository.shareById(id)
     fun viewById(id: Long) = repository.viewById(id)
 
