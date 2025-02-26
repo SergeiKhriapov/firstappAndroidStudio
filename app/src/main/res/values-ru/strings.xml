@@ -22,4 +22,7 @@
     <string name="notification_user_liked">Пользователь %1$s оценил %2$s\'s пост</string>
     <string name="channel_remote_name">Уведомления сервера</string>
     <string name="channel_remote_description">Уведомления с удаленного сервера</string>
+    <string name="empty">Пусто</string>
+    <string name="retry">Повторите попытку</string>
+    <string name="error_text">Ошибка текста</string>
 </resources>

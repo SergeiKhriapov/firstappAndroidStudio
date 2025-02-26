@@ -1,3 +1,4 @@
+/*
 package ru.netology.nmedia.repository
 
 import androidx.lifecycle.LiveData
@@ -26,3 +27,4 @@ class PostRepositoryRoomImpl(
     override fun removeById(id: Long) = dao.removeById(id)
 
 }
+*/
