@@ -21,35 +21,57 @@ class PostRepositoryImpl : PostRepository {
         private val jsonType = "application/json".toMediaType()
     }
 
-    override fun getAll(): List<Post> {
+    override fun getAllAsync(callback: PostRepository.AsyncCallback<List<Post>>) {
         val request: Request = Request.Builder()
             .url("${BASE_URL}/api/slow/posts")
             .build()
 
-        return client.newCall(request)
-            .execute()
-            .let { it.body?.string() ?: throw RuntimeException("body is null") }
-            .let {
-                gson.fromJson(it, Array<Post>::class.java).toList()
-            }
+        client.newCall(request)
+            .enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    val postsString =
+                        response.body?.string() ?: throw RuntimeException("body is null")
+                    try {
+                        // Было callback.onSuccess(gson.fromJson(body, jsonType.type))
+                        val posts = gson.fromJson(postsString, Array<Post>::class.java).toList()
+                        callback.onSuccess(posts)
+                    } catch (e: Exception) {
+                        callback.onError(e)
+                    }
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    callback.onError(e)
+                }
+            })
     }
 
-    override fun save(post: Post): Post {
+    override fun save(post: Post, callback: PostRepository.AsyncCallback<Post>) {
         val request = Request.Builder()
             .post(gson.toJson(post).toRequestBody(jsonType))
             .url("$BASE_URL/api/slow/posts")
             .build()
 
-        val response = client.newCall(request).execute()
-        if (!response.isSuccessful) {
-            throw IOException("Ошибка сохранения: ${response.message}")
-        }
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val postsString =
+                        response.body?.string() ?: throw RuntimeException("body is null")
 
-        val responseBody = response.body?.string() ?: throw IOException("Пустой ответ")
-        return gson.fromJson(responseBody, Post::class.java)
+                    val savedPost = gson.fromJson(postsString, Post::class.java)
+                    callback.onSuccess(savedPost)
+                } else {
+                    callback.onError(Exception("Ошибка при сохранении поста"))
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onError(e)
+            }
+        })
     }
 
-    override fun likeById(post: Post): Post {
+    override fun likeById(post: Post, callback: PostRepository.AsyncCallback<Post>) {
         val request: Request
         if (post.likedByMe) {
             request = Request.Builder()
@@ -63,26 +85,50 @@ class PostRepositoryImpl : PostRepository {
                 .build()
         }
 
-        val response = client.newCall(request).execute()
-        if (!response.isSuccessful) {
-            throw IOException("Ошибка обновления поста: ${response.message}")
-        }
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    callback.onError(IOException("Ошибка обновления поста: ${response.message}"))
+                    return
+                }
 
-        val responseBody = response.body?.string() ?: throw IOException("Тело ответа пустое")
-        return gson.fromJson(responseBody, Post::class.java)
+                val responseBody = response.body?.string() ?: run {
+                    callback.onError(IOException("budy is null"))
+                    return
+                }
+
+                val postResponse = gson.fromJson(responseBody, Post::class.java)
+                callback.onSuccess(postResponse)
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onError(e)
+            }
+        })
     }
 
-    override fun removeById(id: Long) {
+
+    override fun removeById(id: Long, callback: PostRepository.AsyncCallback<Unit>) {
         val request = Request.Builder()
             .delete()
             .url("$BASE_URL/api/slow/posts/$id")
             .build()
 
-        val response = client.newCall(request).execute()
-        if (!response.isSuccessful) {
-            throw IOException("Ошибка при удалении поста: ${response.message}")
-        }
+        client.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    callback.onError(IOException("Ошибка при удалении поста: ${response.message}"))
+                    return
+                }
+                callback.onSuccess(Unit)
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onError(e)
+            }
+        })
     }
+
 
     override fun shareById(id: Long) {
         // todo

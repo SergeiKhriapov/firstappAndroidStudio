@@ -1,6 +1,7 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,7 +10,6 @@ import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
-import java.io.IOException
 import kotlin.concurrent.thread
 
 private val emptyPost = Post(
@@ -39,14 +39,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         thread {
             _data.postValue(FeedModel(loading = true))
             try {
-                val posts = repository.getAll()
-                val updatedPosts = posts.map {
-                    it.copy(published = it.published * 1000)
-                }
-                _data.postValue(
-                    FeedModel(posts = updatedPosts, empty = posts.isEmpty())
-                )
-            } catch (e: IOException) {
+                repository.getAllAsync(object : PostRepository.AsyncCallback<List<Post>> {
+                    override fun onSuccess(result: List<Post>) {
+                        _data.postValue(FeedModel(posts = result, empty = result.isEmpty()))
+                    }
+
+                    override fun onError(e: Exception) {
+                        _data.postValue(FeedModel(error = true))
+                    }
+                })
+            } catch (e: Exception) {
                 _data.postValue(FeedModel(error = true))
             }
         }
@@ -70,16 +72,21 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveContent(content: String) {
         edited.value?.let {
-            thread {
-                val currentTime = System.currentTimeMillis()
-                repository.save(
-                    it.copy(content = content, published = currentTime)
-                )
-                _postCreated.postValue(Unit)
-            }
+            val currentTime = System.currentTimeMillis()
+            val updatedPost = it.copy(content = content, published = currentTime)
+
+            repository.save(updatedPost, object : PostRepository.AsyncCallback<Post> {
+                override fun onSuccess(result: Post) {
+                    _postCreated.postValue(Unit)
+                }
+
+                override fun onError(e: Exception) {
+                }
+            })
         }
         _edited.value = emptyPost
     }
+
 
     fun likeById(id: Long) {
         val post = _data.value?.posts?.find { it.id == id } ?: return
@@ -90,18 +97,20 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _data.value?.posts?.map { if (it.id == id) updatedPost else it }?.let {
             _data.postValue(_data.value?.copy(posts = it))
         }
-        thread {
-            try {
-                val postAfterLike = repository.likeById(post)
+
+        repository.likeById(post, object : PostRepository.AsyncCallback<Post> {
+            override fun onSuccess(result: Post) {
                 _data.value?.posts?.let { posts ->
                     val updatedPosts = posts.map {
                         if (it.id == id) {
-                            postAfterLike.copy(published = it.published)
+                            result.copy(published = it.published)
                         } else it
                     }
                     _data.postValue(_data.value?.copy(posts = updatedPosts))
                 }
-            } catch (e: IOException) {
+            }
+
+            override fun onError(e: Exception) {
                 _data.value?.posts?.let { posts ->
                     val updatedPosts = posts.map {
                         if (it.id == id) post else it
@@ -109,24 +118,26 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                     _data.postValue(_data.value?.copy(posts = updatedPosts))
                 }
             }
-        }
+        })
     }
+
 
     fun shareById(id: Long) = repository.shareById(id)
     fun viewById(id: Long) = repository.viewById(id)
 
     fun removeById(id: Long) {
-        thread {
-            val oldPosts = _data.value?.posts.orEmpty()
-            _data.postValue(
-                _data.value?.copy(
-                    posts = _data.value?.posts.orEmpty().filter { it.id != id })
-            )
-            try {
-                repository.removeById(id)
-            } catch (e: Exception) {
+        val oldPosts = _data.value?.posts.orEmpty()
+        _data.postValue(
+            _data.value?.copy(
+                posts = _data.value?.posts.orEmpty().filter { it.id != id })
+        )
+        repository.removeById(id, object : PostRepository.AsyncCallback<Unit> {
+            override fun onSuccess(result: Unit) {
+            }
+
+            override fun onError(e: Exception) {
                 _data.postValue(_data.value?.copy(posts = oldPosts))
             }
-        }
+        })
     }
 }
