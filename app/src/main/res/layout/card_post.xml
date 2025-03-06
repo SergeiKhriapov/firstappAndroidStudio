@@ -76,19 +76,24 @@
         android:id="@+id/videoPreviewImage"
         android:layout_width="wrap_content"
         android:layout_height="210dp"
-        android:contentDescription="videoPreviewImage"
+        android:contentDescription="@string/videoPreviewImage"
         android:scaleType="centerCrop"
         android:src="@drawable/video"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/content" />
 
-    <!--<androidx.constraintlayout.widget.Barrier
-        android:id="@+id/buildBarrier"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="build" />-->
+    <ImageView
+        android:id="@+id/attachmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="270dp"
+        android:layout_marginTop="10dp"
+        android:contentDescription="@string/attachmentcontainer"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/content" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/contentBarrier"
@@ -102,12 +107,13 @@
         style="@style/Widget.App.LikedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:checkable="true"
         android:contentDescription="@string/heart_description"
         android:padding="16dp"
         app:icon="@drawable/like_selector"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/contentBarrier"
+        app:layout_constraintTop_toBottomOf="@id/attachmentContainer"
         app:tint="@color/black" />
 
     <com.google.android.material.button.MaterialButton
@@ -115,13 +121,14 @@
         style="@style/Widget.App.LikedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:layout_marginStart="10dp"
         android:contentDescription="@string/share_description"
         android:padding="16dp"
         android:textColor="?colorControlNormal"
         app:icon="@drawable/ic_baseline_share_24"
         app:layout_constraintStart_toEndOf="@+id/like"
-        app:layout_constraintTop_toBottomOf="@id/contentBarrier"
+        app:layout_constraintTop_toBottomOf="@id/attachmentContainer"
         app:tint="?colorControlNormal" />
 
     <com.google.android.material.button.MaterialButton
@@ -129,12 +136,13 @@
         style="@style/Widget.App.LikedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:contentDescription="@string/share_description"
         android:padding="16dp"
         android:textColor="?colorControlNormal"
         app:icon="@drawable/ic_baseline_visibility_24"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/contentBarrier"
+        app:layout_constraintTop_toBottomOf="@id/attachmentContainer"
         app:tint="?colorControlNormal" />
 
     <androidx.constraintlayout.widget.Barrier
@@ -147,9 +155,10 @@
     <View
         android:layout_width="0dp"
         android:layout_height="2dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:background="@color/endGray"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/iconBarrier" />
 

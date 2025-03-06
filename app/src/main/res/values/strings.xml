@@ -25,4 +25,6 @@
     <string name="empty">Empty</string>
     <string name="retry">Retry</string>
     <string name="error_text">error_text</string>
+    <string name="attachmentcontainer">attachmentContainer</string>
+    <string name="videoPreviewImage">videoPreviewImage</string>
 </resources>

@@ -4,9 +4,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.isGone
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
@@ -36,6 +38,7 @@ class PostsAdapter(
         private val binding: CardPostBinding,
         private val onInteractionListener: OnInteractionListener
     ) : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(post: Post) = with(binding) {
             content.text = post.content
             author.text = post.author
@@ -43,12 +46,34 @@ class PostsAdapter(
             val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
             published.text = formattedDate
 
-            /*published.text = post.published*/
-
             like.isChecked = post.likedByMe
             like.setText(formatCount(post.likes))
             share.setText(formatCount(post.shareCount))
             views.setText(formatCount(post.viewsCount))
+
+            // Загрузка аватарки
+            val avatarUrl = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
+            Glide.with(binding.avatar)
+                .load(avatarUrl)
+                .placeholder(R.drawable.hourglass_24_ic)
+                .error(R.drawable.ic_launcher_foreground)
+                .timeout(10_000)
+                .circleCrop()
+                .into(binding.avatar)
+
+            // Отображение изображения в вложении, если оно есть
+            if (post.attachment != null) {
+                attachmentContainer.visibility = View.VISIBLE
+                val imageUrl = "http://10.0.2.2:9999/images/${post.attachment.url}"
+                Glide.with(binding.attachmentContainer)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.hourglass_24_ic)
+                    .error(attachmentContainer.isGone)
+                    .timeout(10_000)
+                    .into(binding.attachmentContainer)
+            } else {
+                attachmentContainer.visibility = View.GONE
+            }
 
             if (!post.video.isNullOrEmpty()) {
                 videoPreviewImage.visibility = View.VISIBLE

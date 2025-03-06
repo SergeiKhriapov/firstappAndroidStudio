@@ -7,9 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentFocusOnPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
@@ -18,19 +20,14 @@ import java.util.Locale
 
 class FocusOnPostFragment : Fragment() {
 
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
-
+    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)*/
+    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val binding = FragmentFocusOnPostBinding.inflate(inflater, container, false)
-        /*viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val post = posts.find { it.id == viewModel.edited.value?.id }*/
-        /*viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val currentPost =
-                posts.find { it.id == arguments?.getLong("idFocusPost") } ?: return@observe*/
         viewModel.data.observe(viewLifecycleOwner) { feedModel ->
             val posts = feedModel.posts
             val currentPost =
@@ -39,17 +36,38 @@ class FocusOnPostFragment : Fragment() {
                 binding.content.text = currentPost.content
                 binding.author.text = currentPost.author
 
-                /*binding.published.text = currentPost.published*/
-                /*val date = Date(currentPost.published)*/
-
-                val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-                    Locale.getDefault()).format(currentPost.published)
+                val formattedDate = SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss",
+                    Locale.getDefault()
+                ).format(currentPost.published)
                 binding.published.text = formattedDate
 
                 binding.like.text = currentPost.likes.toString()
                 binding.share.text = currentPost.shareCount.toString()
                 binding.views.text = currentPost.viewsCount.toString()
                 binding.like.isChecked = currentPost.likedByMe
+
+                val url = "http://10.0.2.2:9999/avatars/${currentPost.authorAvatar}"
+                Glide.with(binding.avatar)
+                    .load(url)
+                    .placeholder(R.drawable.hourglass_24_ic)
+                    .error(R.drawable.ic_launcher_foreground)
+                    .timeout(10_000)
+                    .circleCrop()
+                    .into(binding.avatar)
+
+                if (currentPost.attachment != null) {
+                    binding.attachmentContainer.visibility = View.VISIBLE
+                    val imageUrl = "http://10.0.2.2:9999/images/${currentPost.attachment.url}"
+                    Glide.with(binding.attachmentContainer)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.hourglass_24_ic)
+                        .error(binding.attachmentContainer.isGone)
+                        .timeout(10_000)
+                        .into(binding.attachmentContainer)
+                } else {
+                    binding.attachmentContainer.visibility = View.GONE
+                }
 
                 if (!currentPost.video.isNullOrEmpty()) {
                     binding.videoPreviewImage.visibility = View.VISIBLE

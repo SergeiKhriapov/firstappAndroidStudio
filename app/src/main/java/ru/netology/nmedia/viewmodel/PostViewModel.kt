@@ -15,6 +15,7 @@ import kotlin.concurrent.thread
 private val emptyPost = Post(
     id = 0,
     author = "",
+    authorAvatar = "",
     content = "",
     published = 0,
     likedByMe = false,

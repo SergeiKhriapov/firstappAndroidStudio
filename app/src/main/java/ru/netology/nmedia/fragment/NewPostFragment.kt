@@ -16,11 +16,9 @@ import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.util.focusAndShowKeyboard
 import ru.netology.nmedia.viewmodel.PostViewModel
 
-/*class NewPostFragment : Fragment() {
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
-
 class NewPostFragment : Fragment() {
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
+    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)*/
+    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
 
     override fun onCreateView(
         inflater: LayoutInflater,

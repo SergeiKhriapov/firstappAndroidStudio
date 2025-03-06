@@ -15,8 +15,8 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 
 class EditPostFragment : Fragment() {
 
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
-
+    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)*/
+    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

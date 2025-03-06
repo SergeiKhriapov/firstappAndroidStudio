@@ -49,6 +49,17 @@
                 app:layout_constraintStart_toEndOf="@id/avatar"
                 app:layout_constraintTop_toBottomOf="@id/author"
                 tools:text="@sample/posts.json/data/published" />
+            <ImageView
+                android:id="@+id/attachmentContainer"
+                android:layout_width="match_parent"
+                android:layout_height="270dp"
+                android:layout_marginTop="10dp"
+                android:contentDescription="@string/attachmentcontainer"
+                android:scaleType="fitCenter"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/content" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/menu"
@@ -88,11 +99,12 @@
                 style="@style/Widget.App.LikedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:checkable="true"
                 android:contentDescription="@string/heart_description"
                 app:icon="@drawable/like_selector"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/videoPreviewImage"
+                app:layout_constraintTop_toBottomOf="@id/attachmentContainer"
                 app:tint="@color/black" />
 
             <com.google.android.material.button.MaterialButton

@@ -20,7 +20,7 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 
 class FeedFragment : Fragment() {
 
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
+    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -67,6 +67,8 @@ class FeedFragment : Fragment() {
                     bundleOf("idFocusPost" to post.id)
                 )
             }
+
+
         })
 
         binding.container.adapter = adapter
@@ -90,6 +92,7 @@ class FeedFragment : Fragment() {
             viewModel.cancelEditing()
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
         }
+
         viewModel.postCreated.observe(viewLifecycleOwner) {
             viewModel.loadPosts()
             findNavController().navigateUp()
