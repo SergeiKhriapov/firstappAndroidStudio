@@ -19,7 +19,7 @@
     <string name="new_post">New post:</string>
     <string name="back">Back</string>
     <string name="notification_user_liked">User %1$s liked %2$s\'s post</string>
-    <string name="notification_user_posted_new_post" translatable="false">%1$s published a new post:\n%2$s\'s</string>
+    <string name="notification_user_posted_new_post">%1$s published a new post:\n%2$s\'s</string>
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="empty">Empty</string>
