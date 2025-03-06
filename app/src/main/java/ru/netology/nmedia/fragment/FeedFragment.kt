@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
@@ -17,10 +18,12 @@ import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
+import kotlin.getValue
 
 class FeedFragment : Fragment() {
 
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
+    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
+    private val viewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

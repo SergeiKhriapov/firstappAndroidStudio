@@ -95,8 +95,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             likedByMe = !post.likedByMe,
             likes = if (post.likedByMe) post.likes - 1 else post.likes + 1
         )
-        _data.value?.posts?.map { if (it.id == id) updatedPost else it }?.let {
-            _data.postValue(_data.value?.copy(posts = it))
+
+        _data.value?.posts?.let { posts ->
+            val updatedPosts = posts.map {
+                if (it.id == id) updatedPost else it
+            }
+            _data.postValue(_data.value?.copy(posts = updatedPosts))
         }
 
         repository.likeById(post, object : PostRepository.AsyncCallback<Post> {

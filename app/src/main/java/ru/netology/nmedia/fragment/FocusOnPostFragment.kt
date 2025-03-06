@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -17,11 +18,12 @@ import ru.netology.nmedia.databinding.FragmentFocusOnPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.getValue
 
 class FocusOnPostFragment : Fragment() {
 
-    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)*/
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)
+    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
+    private val viewModel: PostViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

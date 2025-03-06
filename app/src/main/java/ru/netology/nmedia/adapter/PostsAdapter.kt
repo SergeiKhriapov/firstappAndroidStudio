@@ -68,7 +68,7 @@ class PostsAdapter(
                 Glide.with(binding.attachmentContainer)
                     .load(imageUrl)
                     .placeholder(R.drawable.hourglass_24_ic)
-                    .error(attachmentContainer.isGone)
+                    .error(R.drawable.error_ic)
                     .timeout(10_000)
                     .into(binding.attachmentContainer)
             } else {
