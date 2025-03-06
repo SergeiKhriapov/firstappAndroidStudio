@@ -20,7 +20,7 @@
     <string name="new_post">Новый пост:</string>
     <string name="back">Назад</string>
     <string name="notification_user_liked">Пользователь %1$s оценил %2$s\'s пост</string>
-    <string name="notification_user_posted_new_post">Пользователь разместил новый пост</string>
+    <string name="notification_user_posted_new_post">Пользователь %1$s разместил новый пост \n%2$s\'s</string>
     <string name="channel_remote_name">Уведомления сервера</string>
     <string name="channel_remote_description">Пользователь разместил новый пост</string>
     <string name="empty">Пусто</string>
