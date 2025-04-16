@@ -95,13 +95,6 @@ class FeedFragment : Fragment() {
             }
         }
 
-       /* viewModel.data.observe(viewLifecycleOwner) { feedModel ->
-            adapter.submitList(feedModel.posts) {
-                // Форсируем обновление списка после изменения данных
-                binding.list.scheduleLayoutAnimation()
-            }
-            binding.empty.isVisible = feedModel.empty
-        }*/
         viewModel.data.observe(viewLifecycleOwner) { feedModel ->
             Log.d("FeedFragment", "Posts received: ${feedModel.posts.size}")
             adapter.submitList(feedModel.posts) {
