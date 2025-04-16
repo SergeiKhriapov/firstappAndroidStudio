@@ -20,7 +20,6 @@ import kotlin.getValue
 
 class NewPostFragment : Fragment() {
 
- /*   private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
     private val viewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -55,7 +54,7 @@ class NewPostFragment : Fragment() {
         }
 
         viewModel.postCreated.observe(viewLifecycleOwner) {
-            viewModel.loadPosts()
+        /*    viewModel.loadPosts()*/
             findNavController().navigateUp()
         }
         return binding.root

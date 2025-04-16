@@ -24,7 +24,9 @@
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="empty">Empty</string>
     <string name="retry">Retry</string>
-    <string name="error_text">error_text</string>
+    <string name="error_text">loading_error</string>
     <string name="attachmentContainer">attachmentContainer</string>
     <string name="videoPreviewImage">videoPreviewImage</string>
+    <string name="add_post">addNewPost</string>
+    <string name="sync_description">Synchronization</string>
 </resources>

@@ -25,7 +25,7 @@
     <string name="channel_remote_description">Пользователь разместил новый пост</string>
     <string name="empty">Пусто</string>
     <string name="retry">Повторите попытку</string>
-    <string name="error_text">Ошибка текста</string>
+    <string name="error_text">Ошибка загрузки</string>
     <string name="attachmentContainer">Контейнер для вложения</string>
     <string name="videoPreviewImage">Превью видео</string>
 </resources>

@@ -87,11 +87,11 @@
         android:id="@+id/attachmentContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:adjustViewBounds="true"
         android:layout_marginTop="10dp"
+        android:adjustViewBounds="true"
         android:contentDescription="@string/attachmentContainer"
         android:scaleType="fitCenter"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/content" />
@@ -122,8 +122,8 @@
         style="@style/Widget.App.LikedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         android:contentDescription="@string/share_description"
         android:padding="16dp"
         android:textColor="?colorControlNormal"
@@ -131,6 +131,22 @@
         app:layout_constraintStart_toEndOf="@+id/like"
         app:layout_constraintTop_toBottomOf="@id/attachmentContainer"
         app:tint="?colorControlNormal" />
+
+    <ImageView
+        android:id="@+id/sync"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:contentDescription="@string/sync_description"
+        android:padding="16dp"
+        android:src="@drawable/ic_sync_24"
+        app:layout_constraintStart_toEndOf="@+id/share"
+        app:layout_constraintTop_toBottomOf="@id/attachmentContainer"
+        android:visibility="gone"
+
+        />
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/views"

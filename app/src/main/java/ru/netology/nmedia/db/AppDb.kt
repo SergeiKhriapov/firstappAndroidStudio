@@ -1,17 +1,18 @@
 package ru.netology.nmedia.db
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import ru.netology.nmedia.dao.LocalPostEntityDao
 import ru.netology.nmedia.dao.PostDao
-import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.entities.LocalPostEntity
+import ru.netology.nmedia.entities.PostEntity
 
-@Database(entities = [PostEntity::class], version = 1)
+@Database(entities = [PostEntity::class, LocalPostEntity::class], version = 1)
 abstract class AppDb : RoomDatabase() {
     abstract val postDao: PostDao
+    abstract val localPostEntityDao: LocalPostEntityDao
 
     companion object {
         @Volatile
@@ -24,10 +25,14 @@ abstract class AppDb : RoomDatabase() {
             }
         }
 
-        private fun buildDatabase(context: Context) = Room.databaseBuilder(
-            context, AppDb::class.java, "app.db"
-        )
-            .allowMainThreadQueries()
-            .build()
+        private fun buildDatabase(context: Context): AppDb {
+            // Удаляем старую базу данных перед созданием новой
+            context.deleteDatabase("app.db")
+
+            return Room.databaseBuilder(
+                context, AppDb::class.java, "app.db"
+            )
+                .build()
+        }
     }
 }

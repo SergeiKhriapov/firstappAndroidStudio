@@ -3,6 +3,7 @@ package ru.netology.nmedia.fragment
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -22,7 +24,6 @@ import kotlin.getValue
 
 class FeedFragment : Fragment() {
 
-    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
     private val viewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -42,7 +43,8 @@ class FeedFragment : Fragment() {
                     putExtra(Intent.EXTRA_TEXT, post.content)
                     type = "text/plain"
                 }
-                val shareIntent = Intent.createChooser(intent, getString(R.string.chooser_share_post))
+                val shareIntent =
+                    Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
 
@@ -74,24 +76,40 @@ class FeedFragment : Fragment() {
 
         })
 
-        binding.container.adapter = adapter
+        binding.list.adapter = adapter
+
         binding.swipeRefreshLayout.setOnRefreshListener {
-            viewModel.loadPosts()
+            viewModel.refreshPosts()
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.empty.isVisible = state.empty
-            binding.errorGroup.isVisible = state.error
-            binding.progress.isVisible = state.loading
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+            binding.progressLoadPosts.isVisible = state.loading
             binding.swipeRefreshLayout.isRefreshing = state.loading
+
+            if (state.error) {
+                Snackbar.make(binding.root, R.string.error_text, Snackbar.LENGTH_SHORT)
+                    .setAction(R.string.retry) {
+                        viewModel.loadPosts()
+                    }
+                    .show()
+            }
         }
 
-        binding.retry.setOnClickListener {
-            viewModel.loadPosts()
+       /* viewModel.data.observe(viewLifecycleOwner) { feedModel ->
+            adapter.submitList(feedModel.posts) {
+                // Форсируем обновление списка после изменения данных
+                binding.list.scheduleLayoutAnimation()
+            }
+            binding.empty.isVisible = feedModel.empty
+        }*/
+        viewModel.data.observe(viewLifecycleOwner) { feedModel ->
+            Log.d("FeedFragment", "Posts received: ${feedModel.posts.size}")
+            adapter.submitList(feedModel.posts) {
+                binding.list.scheduleLayoutAnimation()
+            }
+            binding.empty.isVisible = feedModel.empty
         }
-
-        binding.save.setOnClickListener {
+        binding.addNewPost.setOnClickListener {
             viewModel.cancelEditing()
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
         }

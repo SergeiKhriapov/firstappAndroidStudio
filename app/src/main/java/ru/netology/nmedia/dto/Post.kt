@@ -1,8 +1,8 @@
 package ru.netology.nmedia.dto
-import ru.netology.nmedia.dt.Attachment
 
 data class Post(
     val id: Long,
+    val idLocal: Long,
     val author: String,
     val authorAvatar: String,
     val content: String,
@@ -12,5 +12,6 @@ data class Post(
     val shareCount: Int = 0,
     val viewsCount: Int = 0,
     val video: String? = null,
-    val attachment: Attachment? = null
+    val attachment: Attachment? = null,
+    val isSynced: Boolean = false
 )

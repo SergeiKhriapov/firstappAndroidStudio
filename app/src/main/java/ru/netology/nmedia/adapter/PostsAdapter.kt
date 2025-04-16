@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.formatCount
 import java.text.SimpleDateFormat
@@ -41,9 +42,10 @@ class PostsAdapter(
 
         fun bind(post: Post) = with(binding) {
             content.text = post.content
-            author.text = post.author
-            val date = Date(post.published)
-            val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
+            author.text =post.author
+            val date = Date(post.published * 1000)
+            val formattedDate =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
             published.text = formattedDate
 
             like.isChecked = post.likedByMe

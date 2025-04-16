@@ -1,4 +1,4 @@
-package ru.netology.nmedia.dt
+package ru.netology.nmedia.dto
 
 data class Attachment(
     val url: String,
