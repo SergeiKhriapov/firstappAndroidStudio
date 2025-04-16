@@ -1,9 +1,11 @@
 package ru.netology.nmedia.fragment
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -19,6 +21,7 @@ class EditPostFragment : Fragment() {
 /*    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
     private val viewModel: PostViewModel by activityViewModels()
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
