@@ -1,15 +1,17 @@
 package ru.netology.nmedia.dao
 
 import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import ru.netology.nmedia.entities.LocalPostEntity
-
-
-
+import ru.netology.nmedia.entities.PostEntity
 
 
 @Dao
-interface LocalPostEntityDao {
+interface LocalPostDao {
 
     // Получаем все черновики
     @Query("SELECT * FROM LocalPostEntity ORDER BY published DESC")
@@ -17,7 +19,8 @@ interface LocalPostEntityDao {
 
     // Вставляем один черновик
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(post: LocalPostEntity)
+    suspend fun insert(post: LocalPostEntity): Long
+
 
     // Удаляем черновик по id
     @Query("DELETE FROM LocalPostEntity WHERE idLocal=:id")
@@ -31,11 +34,29 @@ interface LocalPostEntityDao {
     @Query("SELECT * FROM LocalPostEntity WHERE isSynced = 0 ORDER BY published DESC")
     fun getUnsynced(): LiveData<List<LocalPostEntity>>
 
+    @Query("SELECT * FROM LocalPostEntity WHERE isSynced = 0")
+    suspend fun getAllUnsynced(): List<LocalPostEntity>
+
     // Обновляем черновик по id
     @Query("UPDATE LocalPostEntity SET content=:text WHERE idLocal=:id")
     suspend fun edit(id: Long, text: String)
 
-    // Сохраняем черновик (если id == 0L, то добавляем, иначе обновляем)
+    // если id == 0L то добавляем, иначе обновляем)
     suspend fun save(post: LocalPostEntity) =
         if (post.idLocal== 0L) insert(post) else edit(post.idLocal, post.content)
+
+    @Query("SELECT * FROM LocalPostEntity WHERE isSynced = 0")
+    suspend fun getUnsyncedPosts(): List<LocalPostEntity>
+
+    @Update
+    suspend fun update(post: PostEntity)
+
+    @Update
+    suspend fun updateLocal(post: LocalPostEntity)
+
+
+    @Query("UPDATE LocalPostEntity SET isSynced = 1 WHERE idLocal = :id")
+    suspend fun markAsSynced(id: Long)
+
+
 }

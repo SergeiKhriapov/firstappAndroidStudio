@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import ru.netology.nmedia.entities.PostEntity
 
 @Dao
@@ -23,24 +24,27 @@ interface PostDao {
     @Query("UPDATE PostEntity SET content=:text WHERE id=:id")
     suspend fun edit(id: Long, text: String)
 
-    suspend fun save(post: PostEntity) =
-        if (post.id == 0L) insert(post) else edit(post.id, post.content)
+    /*suspend fun save(post: PostEntity) =
+        if (post.id == 0L) insert(post) else edit(post.id, post.content)*/
+    suspend fun save(post: PostEntity) {
+        if (post.id == 0L) {
+            insert(post)
+        } else {
+            update(post.id, post.content, post.published, post.isSynced)
+        }
+    }
 
 
     @Query(
-        """
-            UPDATE PostEntity SET
-            likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
+        """UPDATE PostEntity SET likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
             likedByMe = CASE WHEN likedByMe THEN 0 else 1 END
-            WHERE id = :id
-        """
+            WHERE id = :id"""
     )
     suspend fun likeById(id: Long)
 
 
     @Query("DELETE FROM PostEntity WHERE ID=:id")
     suspend fun removeById(id: Long)
-
 
 
     @Query(
@@ -63,4 +67,22 @@ interface PostDao {
 
     @Query("SELECT * FROM PostEntity WHERE id = :id")
     suspend fun getById(id: Long): PostEntity?
+
+    @Query(
+        """
+        UPDATE PostEntity SET 
+            content = :content,
+            published = :published,
+            isSynced = :isSynced
+        WHERE id = :id
+    """
+    )
+    suspend fun update(
+        id: Long,
+        content: String,
+        published: Long,
+        isSynced: Boolean
+    )
+
+
 }

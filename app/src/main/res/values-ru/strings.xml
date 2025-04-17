@@ -26,8 +26,10 @@
     <string name="empty">Пусто</string>
     <string name="retry">Повторите попытку</string>
     <string name="error_text">Ошибка загрузки</string>
+    <string name="error_synchronization">ошибка синхронизации</string>
     <string name="attachmentContainer">Контейнер для вложения</string>
     <string name="videoPreviewImage">Превью видео</string>
     <string name="add_post">Добавляем новый пост</string>
     <string name="sync_description">Синхронизированно</string>
+    <string name="error_local_like">ошибка лайка</string>
 </resources>

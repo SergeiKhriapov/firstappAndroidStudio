@@ -23,38 +23,45 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun save(post: Post): Post {
         return try {
             val saved = PostsApi.retrofitService.save(post)
-            dao.insert(PostEntity.fromDto(saved.copy(isSynced = true))) // Помечаем синхронизированные посты
+            dao.insert(PostEntity.fromDto(saved.copy(isSynced = true)))
             saved
         } catch (e: Exception) {
-            //
             throw e
         }
     }
 
-
     override suspend fun likeById(id: Long): Post {
         val post = dao.getById(id)?.toDto() ?: throw Exception("Post not found")
-        val updated = post.copy(likedByMe = true, likes = post.likes + 1)
-        dao.insert(PostEntity.fromDto(updated))      // Обновляю Room
-
+        val updated = post.copy(
+            likedByMe = true,
+            likes = if (post.likes == 0) 1 else post.likes + 1
+        )
+        dao.insert(PostEntity.fromDto(updated))
         try {
             val response = PostsApi.retrofitService.likeById(id)
-            dao.insert(PostEntity.fromDto(response)) // Синхронизация лайков в Room из сети.
+            dao.insert(PostEntity.fromDto(response))
+
             return response
         } catch (e: Exception) {
+            dao.insert(PostEntity.fromDto(post))
             throw e
         }
     }
 
     override suspend fun dislikeById(id: Long): Post {
         val post = dao.getById(id)?.toDto() ?: throw Exception("Post not found")
-        val updated = post.copy(likedByMe = false, likes = -1)
+        val updated = post.copy(
+            likedByMe = false,
+            likes = if (post.likes == 1) 0 else post.likes - 1
+        )
         dao.insert(PostEntity.fromDto(updated))
         try {
             val response = PostsApi.retrofitService.dislikeById(id)
             dao.insert(PostEntity.fromDto(response))
+
             return response
         } catch (e: Exception) {
+            dao.insert(PostEntity.fromDto(post))
             throw e
         }
     }
@@ -68,6 +75,9 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             post?.let { dao.insert(it) }
             throw e
         }
+    }
+    override suspend fun update(post: Post) {
+        dao.update(post.id, post.content, post.published, post.isSynced)
     }
 
 

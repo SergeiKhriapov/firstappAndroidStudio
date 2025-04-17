@@ -11,7 +11,6 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
@@ -73,7 +72,9 @@ class FeedFragment : Fragment() {
                 )
             }
 
-
+            override fun showError(message: String) {
+                TODO("Not yet implemented")
+            }
         })
 
         binding.list.adapter = adapter
@@ -93,6 +94,22 @@ class FeedFragment : Fragment() {
                     }
                     .show()
             }
+        }
+        viewModel.syncError.observe(viewLifecycleOwner) { hasError ->
+            if (hasError) {
+                Snackbar.make(binding.root, R.string.error_synchronization, Snackbar.LENGTH_SHORT)
+                    .setAction(R.string.retry) {
+                        viewModel.syncPosts()
+                    }
+                    .show()
+            }
+        }
+        viewModel.likeError.observe(viewLifecycleOwner) {
+            Snackbar.make(binding.root, R.string.error_local_like, Snackbar.LENGTH_SHORT)
+                .setAction(R.string.retry) {
+                    viewModel.syncPosts()
+                }
+                .show()
         }
 
         viewModel.data.observe(viewLifecycleOwner) { feedModel ->

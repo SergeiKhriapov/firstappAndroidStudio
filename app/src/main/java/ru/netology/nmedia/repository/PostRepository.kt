@@ -13,5 +13,7 @@ interface PostRepository {
     suspend fun dislikeById(id: Long): Post
     fun shareById(id: Long)
     fun viewById(id: Long)
+    suspend fun update(post: Post)
+
 
 }

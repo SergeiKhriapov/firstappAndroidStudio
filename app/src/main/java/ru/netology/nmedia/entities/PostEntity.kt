@@ -27,7 +27,7 @@ data class PostEntity(
     val attachmentDescription: String? = null,
     val attachmentType: String? = null,
 
-    val isSynced: Boolean = false
+    val isSynced: Boolean = true
 
 
 ) {
@@ -50,7 +50,7 @@ data class PostEntity(
                 type = AttachmentType.valueOf(attachmentType)
             )
         else null,
-        isSynced = this.isSynced
+        isSynced = true
     )
 
     companion object {

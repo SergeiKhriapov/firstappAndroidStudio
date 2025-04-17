@@ -42,8 +42,8 @@ class PostsAdapter(
 
         fun bind(post: Post) = with(binding) {
             content.text = post.content
-            author.text =post.author
-            val date = Date(post.published * 1000)
+            author.text = post.author
+            val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
             val formattedDate =
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
             published.text = formattedDate
@@ -85,6 +85,7 @@ class PostsAdapter(
             } else {
                 videoPreviewImage.visibility = View.GONE
             }
+            sync.visibility = if (post.isSynced) View.VISIBLE else View.GONE
 
             like.setOnClickListener {
                 onInteractionListener.onLike(post)

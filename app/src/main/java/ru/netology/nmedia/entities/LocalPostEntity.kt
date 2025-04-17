@@ -20,7 +20,7 @@ data class LocalPostEntity(
     val shareCount: Int = 0,
     val viewsCount: Int = 0,
     val video: String? = null,
-    val isSynced: Boolean = false, // не синхронизирован
+    val isSynced: Boolean = false,
 
     // Исправил вложенные файлы. Спросить про конвертер json.
     val attachmentUrl: String? = null,

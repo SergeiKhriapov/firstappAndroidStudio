@@ -17,6 +17,7 @@ import ru.netology.nmedia.repository.LocalPostRepositoryImpl
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
+import kotlin.math.log
 
 private val emptyPost = Post(
     id = 0,
@@ -32,10 +33,17 @@ private val emptyPost = Post(
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDb.getInstance(application)
     private val repository: PostRepository = PostRepositoryImpl(database.postDao)
-    private val localRepository: LocalPostRepositoryImpl = LocalPostRepositoryImpl(database.localPostEntityDao)
+    private val localRepository: LocalPostRepositoryImpl =
+        LocalPostRepositoryImpl(database.localPostDao)
 
     private val _dataState = MutableLiveData<FeedModelState>()
     val dataState: LiveData<FeedModelState> get() = _dataState
+
+    private val _syncError = MutableLiveData<Boolean>()
+    val syncError: LiveData<Boolean> get() = _syncError
+
+    private val _likeError = SingleLiveEvent<Unit>()
+    val likeError: LiveData<Unit> get() = _likeError
 
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> get() = _postCreated
@@ -51,17 +59,18 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
         fun combine() {
             value = (synced + unsynced)
-                .distinctBy { it.idLocal } // Убираем дубликаты
                 .sortedByDescending { it.published }
         }
 
+
+
         addSource(repository.data) { newSynced ->
-            synced = newSynced.filter { it.isSynced } // Только синхронизированные
+            synced = newSynced.filter { it.isSynced } // синхронизированные
             combine()
         }
 
         addSource(localRepository.data) { newUnsynced ->
-            unsynced = newUnsynced.filter { !it.isSynced } // Только локальные
+            unsynced = newUnsynced.filter { !it.isSynced } // локальные
             combine()
         }
     }
@@ -75,6 +84,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadPosts() = viewModelScope.launch {
+        syncPosts()
         try {
             _dataState.value = FeedModelState(loading = true)
             repository.getAll() // загружаем с сервера
@@ -85,7 +95,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
     fun refreshPosts() = viewModelScope.launch {
+        syncPosts()
         try {
             _dataState.value = FeedModelState(refreshing = true)
             repository.getAll()
@@ -96,51 +108,71 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun syncPosts() = viewModelScope.launch {
+        val hasError = localRepository.syncUnsyncedPosts()
+        _syncError.value = hasError
+    }
+
     fun saveContent(content: String) {
         edited.value?.let { post ->
             viewModelScope.launch {
-                val newPost = post.copy(
+                val updatedPost = post.copy(
                     content = content,
                     published = System.currentTimeMillis(),
-                    isSynced = false, //
-                    idLocal = if (post.idLocal == 0L) 0 else post.idLocal,
-                    id = 0
+                    isSynced = false
                 )
                 try {
-                    // Сохраняем в локальную БД
-                    Log.d("PostViewModel", "saveContent: $newPost ")
-                    localRepository.save(newPost)
+                    if (post.isSynced) {
+                       repository.save(updatedPost.copy(isSynced = true))
+                        localRepository.update(updatedPost.copy(isSynced = true))
+                    } else if (post.idLocal != 0L) {
+                        localRepository.update(updatedPost)
+                        try {
+                            repository.save(updatedPost.copy(isSynced = true))
+                            localRepository.removeById(updatedPost.idLocal)
+                        } catch (e: Exception) {
+                            Log.e("PostViewModel", "Error syncing local post", e)
+                        }
+                    } else {
+                        val localId = localRepository.save(updatedPost)
+                        val savedPost = updatedPost.copy(idLocal = localId)
 
-                    // Пробуем синхронизировать с сервером
-                    try {
-                        val syncedPost = repository.save(newPost.copy(isSynced = true))
-                        localRepository.removeById(syncedPost.idLocal)
-                    } catch (e: Exception) {
-                        Log.d("PostViewModel", "Нет соединения с сервером. Сохранили только локально: ${e.message}")
+                        try {
+                            repository.save(savedPost.copy(isSynced = true))
+                            localRepository.removeById(savedPost.idLocal)
+                        } catch (e: Exception) {
+                            Log.e("PostViewModel", "Error syncing new post", e)
+                        }
                     }
-
-                    _postCreated.postValue(Unit)
-                    _edited.postValue(emptyPost)
                 } catch (e: Exception) {
-                    Log.e("PostViewModel", "Ошибка при сохранении", e)
-                    _dataState.postValue(FeedModelState(error = true))
+                    Log.e("PostViewModel", "Error saving content", e)
                 }
+                _postCreated.value = Unit
+                _edited.value = emptyPost
             }
         }
     }
 
 
+
+
     fun likeById(id: Long) = viewModelScope.launch {
         try {
             val post = allPosts.value?.find { it.id == id || it.idLocal == id } ?: return@launch
+
             if (post.isSynced) {
-                repository.likeById(post.id)
+                if (post.likedByMe) {
+                    repository.dislikeById(post.id)
+                } else {
+                    repository.likeById(post.id)
+                }
             } else {
-                localRepository.save(post.copy(likedByMe = !post.likedByMe))
+                _likeError.postValue(Unit)
+                return@launch
             }
         } catch (e: Exception) {
-            Log.e("PostViewModel", "Like error", e)
-            _dataState.postValue(FeedModelState(error = true))
+            Log.e("PostViewModel", "Error liking or disliking post", e)
+            _likeError.postValue(Unit)
         }
     }
 

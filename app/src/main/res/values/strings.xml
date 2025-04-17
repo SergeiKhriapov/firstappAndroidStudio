@@ -25,8 +25,10 @@
     <string name="empty">Empty</string>
     <string name="retry">Retry</string>
     <string name="error_text">loading_error</string>
+    <string name="error_synchronization">Synchronization error</string>
     <string name="attachmentContainer">attachmentContainer</string>
     <string name="videoPreviewImage">videoPreviewImage</string>
     <string name="add_post">addNewPost</string>
     <string name="sync_description">Synchronization</string>
+    <string name="error_local_like">error_local_like</string>
 </resources>
