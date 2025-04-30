@@ -168,9 +168,6 @@ class FeedFragment : Fragment() {
             }
             findNavController().navigateUp()
         }
-
-        
-
         return binding.root
     }
 }
