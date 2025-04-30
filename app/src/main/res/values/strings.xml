@@ -31,4 +31,6 @@
     <string name="add_post">addNewPost</string>
     <string name="sync_description">Synchronization</string>
     <string name="error_local_like">error_local_like</string>
+    <string name="extended_fab_content_desc">make hidden visible</string>
+    <string name="extended_fab_label">Свежие записи</string>
 </resources>

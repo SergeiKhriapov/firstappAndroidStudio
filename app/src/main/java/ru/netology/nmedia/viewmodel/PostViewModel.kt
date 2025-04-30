@@ -4,10 +4,18 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
@@ -17,7 +25,6 @@ import ru.netology.nmedia.repository.LocalPostRepositoryImpl
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
-import kotlin.math.log
 
 private val emptyPost = Post(
     id = 0,
@@ -32,51 +39,60 @@ private val emptyPost = Post(
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDb.getInstance(application)
-    private val repository: PostRepository = PostRepositoryImpl(database.postDao)
+
+    private val repository: PostRepository =
+        PostRepositoryImpl(database.postDao)
+
     private val localRepository: LocalPostRepositoryImpl =
         LocalPostRepositoryImpl(database.localPostDao)
 
     private val _dataState = MutableLiveData<FeedModelState>()
+
     val dataState: LiveData<FeedModelState> get() = _dataState
-
     private val _syncError = MutableLiveData<Boolean>()
+
     val syncError: LiveData<Boolean> get() = _syncError
-
     private val _likeError = SingleLiveEvent<Unit>()
+
     val likeError: LiveData<Unit> get() = _likeError
-
     private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated: LiveData<Unit> get() = _postCreated
 
+    val postCreated: LiveData<Unit> get() = _postCreated
     private val _edited = MutableLiveData<Post?>(emptyPost)
+
     val edited: LiveData<Post?> get() = _edited
+
+    val hiddenSyncedCount: LiveData<Int> = repository.getHiddenSyncedCount()
+        .asLiveData(Dispatchers.Default)
 
     private var draftContent: String? = null
 
-    private val allPosts = MediatorLiveData<List<Post>>().apply {
-        var synced: List<Post> = emptyList()
-        var unsynced: List<Post> = emptyList()
+    private val allPosts: StateFlow<List<Post>> = combine(
+        repository.data,
+        localRepository.data
+    ) { synced, unsynced ->
+        val filteredSynced = synced.filter { it.isSynced }
+        val filteredUnsynced = unsynced.filter { !it.isSynced }
+        (filteredSynced + filteredUnsynced).sortedByDescending { it.published }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        emptyList()
+    )
 
-        fun combine() {
-            value = (synced + unsynced)
-                .sortedByDescending { it.published }
+    val data: LiveData<FeedModel> = allPosts
+        .map { posts ->
+            val visiblePosts = posts.filter { !it.hidden }
+            FeedModel(visiblePosts)
         }
+        .catch { it.printStackTrace() }
+        .asLiveData(Dispatchers.Default)
 
 
-
-        addSource(repository.data) { newSynced ->
-            synced = newSynced.filter { it.isSynced } // синхронизированные
-            combine()
-        }
-
-        addSource(localRepository.data) { newUnsynced ->
-            unsynced = newUnsynced.filter { !it.isSynced } // локальные
-            combine()
-        }
-    }
-
-    val data: LiveData<FeedModel> = allPosts.map { posts ->
-        FeedModel(posts = posts, empty = posts.isEmpty())
+    val newerCount = data.switchMap {
+        repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
+            .catch { _dataState.postValue(FeedModelState(error(true))) }
+            .asLiveData(Dispatchers.Default)
     }
 
     init {
@@ -94,6 +110,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             _dataState.value = FeedModelState(error = true)
         }
     }
+
 
 
     fun refreshPosts() = viewModelScope.launch {
@@ -123,7 +140,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 try {
                     if (post.isSynced) {
-                       repository.save(updatedPost.copy(isSynced = true))
+                        repository.save(updatedPost.copy(isSynced = true))
                         localRepository.update(updatedPost.copy(isSynced = true))
                     } else if (post.idLocal != 0L) {
                         localRepository.update(updatedPost)
@@ -153,12 +170,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
-
-
     fun likeById(id: Long) = viewModelScope.launch {
         try {
-            val post = allPosts.value?.find { it.id == id || it.idLocal == id } ?: return@launch
+            val post =
+                repository.data.first().find { it.id == id || it.idLocal == id } ?: return@launch
 
             if (post.isSynced) {
                 if (post.likedByMe) {
@@ -187,6 +202,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             Log.e("PostViewModel", "Delete error", e)
             _dataState.postValue(FeedModelState(error = true))
+        }
+    }
+    fun unhideAllSyncedPosts() {
+        viewModelScope.launch {
+            repository.unhideAllSyncedPosts()
         }
     }
 

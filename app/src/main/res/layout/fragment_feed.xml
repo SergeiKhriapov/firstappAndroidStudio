@@ -57,4 +57,46 @@
         android:focusable="true"
         android:layout_gravity="bottom|end"
         app:srcCompat="@drawable/ic_add_24_dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="16dp">
+
+        <!-- Кнопка, размещенная по центру сверху -->
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/hiddenVisible"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="@string/extended_fab_label"
+            android:contentDescription="@string/extended_fab_content_desc"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone"
+        />
+
+        <!-- Счетчик, размещенный справа от кнопки -->
+        <TextView
+            android:id="@+id/fab_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_alignTop="@id/hiddenVisible"
+            android:layout_toEndOf="@id/hiddenVisible"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/counter_background"
+            android:elevation="8dp"
+            android:gravity="center"
+            android:minWidth="20dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:visibility="gone"  />
+    </RelativeLayout>
+
+
+
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

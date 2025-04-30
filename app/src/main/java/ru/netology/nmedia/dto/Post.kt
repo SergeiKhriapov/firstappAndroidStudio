@@ -13,5 +13,6 @@ data class Post(
     val viewsCount: Int = 0,
     val video: String? = null,
     val attachment: Attachment? = null,
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+    val hidden: Boolean = false
 )

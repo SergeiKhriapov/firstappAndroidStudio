@@ -70,4 +70,4 @@ data class LocalPostEntity(
 }
 
 fun List<Post>.toLocalPostEntity(): List<LocalPostEntity> = map { LocalPostEntity.fromDto(it) }
-fun List<LocalPostEntity>.toPostDto(): List<Post> = map { it.toDto() }
+fun List<LocalPostEntity>.toLocalPostDto(): List<Post> = map { it.toDto() }

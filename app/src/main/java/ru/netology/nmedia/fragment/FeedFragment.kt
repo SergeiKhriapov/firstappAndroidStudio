@@ -30,6 +30,7 @@ class FeedFragment : Fragment() {
     ): View? {
         val binding: FragmentFeedBinding = FragmentFeedBinding.inflate(inflater, container, false)
 
+        // Создаем адаптер для списка постов
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onLike(post: Post) {
                 viewModel.likeById(post.id)
@@ -73,61 +74,101 @@ class FeedFragment : Fragment() {
             }
 
             override fun showError(message: String) {
-                TODO("Not yet implemented")
+                Log.e("FeedFragment", "Ошибка: $message")
             }
         })
 
+
         binding.list.adapter = adapter
 
+        viewModel.newerCount.observe(viewLifecycleOwner) {
+            Log.d("FeedFragment", "Наблюдаем за newerCount: $it")
+            println(it)
+        }
+
         binding.swipeRefreshLayout.setOnRefreshListener {
+            Log.d("FeedFragment", "Обновляем посты...")
             viewModel.refreshPosts()
         }
 
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
+            Log.d(
+                "FeedFragment",
+                "Состояние данных: Загрузка = ${state.loading}, Ошибка = ${state.error}"
+            )
             binding.progressLoadPosts.isVisible = state.loading
             binding.swipeRefreshLayout.isRefreshing = state.loading
 
             if (state.error) {
                 Snackbar.make(binding.root, R.string.error_text, Snackbar.LENGTH_SHORT)
                     .setAction(R.string.retry) {
+                        Log.d("FeedFragment", "Повторная попытка загрузить посты после ошибки...")
                         viewModel.loadPosts()
                     }
                     .show()
             }
         }
+
         viewModel.syncError.observe(viewLifecycleOwner) { hasError ->
             if (hasError) {
+                Log.d("FeedFragment", "ошибка синхронизации")
                 Snackbar.make(binding.root, R.string.error_synchronization, Snackbar.LENGTH_SHORT)
                     .setAction(R.string.retry) {
+                        Log.d("FeedFragment", "Повторная попытка синхронизации постов...")
                         viewModel.syncPosts()
                     }
                     .show()
             }
         }
+
         viewModel.likeError.observe(viewLifecycleOwner) {
+            Log.d("FeedFragment", "Произошла ошибка при лайке")
             Snackbar.make(binding.root, R.string.error_local_like, Snackbar.LENGTH_SHORT)
                 .setAction(R.string.retry) {
+                    Log.d(
+                        "FeedFragment",
+                        "Повторная попытка синхронизации постов после ошибки лайка..."
+                    )
                     viewModel.syncPosts()
                 }
                 .show()
         }
 
         viewModel.data.observe(viewLifecycleOwner) { feedModel ->
-            Log.d("FeedFragment", "Posts received: ${feedModel.posts.size}")
+            Log.d("FeedFragment", "Получено количество постов: ${feedModel.posts.size}")
             adapter.submitList(feedModel.posts) {
+                /*binding.list.scheduleLayoutAnimation()*/
+
+                binding.list.scrollToPosition(0) // простой, надёжный способ
                 binding.list.scheduleLayoutAnimation()
+
             }
             binding.empty.isVisible = feedModel.empty
         }
+
         binding.addNewPost.setOnClickListener {
+            Log.d("FeedFragment", "Переход на экран создания нового поста")
             viewModel.cancelEditing()
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
         }
 
+        viewModel.hiddenSyncedCount.observe(viewLifecycleOwner) { count ->
+            binding.fabCounter.text = count.toString()
+            val visibility = if (count > 0) View.VISIBLE else View.GONE
+            binding.fabCounter.visibility = visibility
+            binding.hiddenVisible.visibility = visibility
+            binding.hiddenVisible.setOnClickListener {
+                viewModel.unhideAllSyncedPosts()
+            }
+        }
         viewModel.postCreated.observe(viewLifecycleOwner) {
+            Log.d("FeedFragment", "Пост создан, перезагружаем посты")
             viewModel.loadPosts()
+            binding.list.post {
+            }
             findNavController().navigateUp()
         }
+
         return binding.root
     }
 }

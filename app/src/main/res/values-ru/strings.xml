@@ -32,4 +32,6 @@
     <string name="add_post">Добавляем новый пост</string>
     <string name="sync_description">Синхронизированно</string>
     <string name="error_local_like">ошибка лайка</string>
+    <string name="extended_fab_content_desc">сделать невидимые видимыми</string>
+    <string name="extended_fab_label">Свежие записи</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.entities.LocalPostEntity
 import ru.netology.nmedia.entities.PostEntity
 
@@ -15,7 +16,7 @@ interface LocalPostDao {
 
     // Получаем все черновики
     @Query("SELECT * FROM LocalPostEntity ORDER BY published DESC")
-    fun getAll(): LiveData<List<LocalPostEntity>> // Возвращаем LiveData с черновиками
+    fun getAll(): Flow<List<LocalPostEntity>> // Возвращаем Flow с черновиками
 
     // Вставляем один черновик
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -32,7 +33,7 @@ interface LocalPostDao {
 
     // Получаем все черновики, которые еще не синхронизированы
     @Query("SELECT * FROM LocalPostEntity WHERE isSynced = 0 ORDER BY published DESC")
-    fun getUnsynced(): LiveData<List<LocalPostEntity>>
+    fun getUnsynced(): Flow<List<LocalPostEntity>>
 
     @Query("SELECT * FROM LocalPostEntity WHERE isSynced = 0")
     suspend fun getAllUnsynced(): List<LocalPostEntity>

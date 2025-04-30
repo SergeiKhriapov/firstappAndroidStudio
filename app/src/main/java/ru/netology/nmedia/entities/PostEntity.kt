@@ -20,18 +20,18 @@ data class PostEntity(
     val shareCount: Int = 0,
     val viewsCount: Int = 0,
     val video: String? = null,
+    val hidden: Boolean = true,
 
-
-    // Исправил вложенные файлы. Спросить про конвертер json.
+    // Поля для вложений
     val attachmentUrl: String? = null,
     val attachmentDescription: String? = null,
     val attachmentType: String? = null,
 
     val isSynced: Boolean = true
-
-
 ) {
-    fun toDto() = Post(
+
+    // Метод для преобразования PostEntity в Post DTO
+    fun toDto(): Post = Post(
         id = id,
         idLocal = idLocal,
         author = author,
@@ -43,18 +43,23 @@ data class PostEntity(
         shareCount = shareCount,
         viewsCount = viewsCount,
         video = video,
-        attachment = if (attachmentUrl != null && attachmentType != null)
+        hidden = hidden,
+
+        // Преобразование вложения в DTO, если оно есть
+        attachment = if (attachmentUrl != null && attachmentType != null) {
             Attachment(
                 url = attachmentUrl,
                 description = attachmentDescription,
                 type = AttachmentType.valueOf(attachmentType)
             )
-        else null,
+        } else null,
+
         isSynced = true
     )
 
     companion object {
-        fun fromDto(post: Post): PostEntity = PostEntity(
+        // Метод для преобразования Post DTO в PostEntity
+        fun fromDto(post: Post, hidden: Boolean = post.hidden): PostEntity = PostEntity(
             id = post.id,
             idLocal = post.idLocal,
             author = post.author,
@@ -66,12 +71,19 @@ data class PostEntity(
             shareCount = post.shareCount,
             viewsCount = post.viewsCount,
             video = post.video,
+            hidden = hidden, // Параметр hidden передается в метод
             attachmentUrl = post.attachment?.url,
             attachmentDescription = post.attachment?.description,
             attachmentType = post.attachment?.type?.name,
+            isSynced = true
         )
     }
 }
 
-fun List<Post>.toPostEntity(): List<PostEntity> = map { PostEntity.fromDto(it) }
-fun List<PostEntity>.toPostDto(): List<Post> = map { it.toDto() }
+// Расширение для преобразования списка Post в список PostEntity
+fun List<Post>.toPostEntity(hidden: Boolean): List<PostEntity> =
+    map { PostEntity.fromDto(it, hidden) }
+
+// Расширение для преобразования списка PostEntity в список Post DTO
+fun List<PostEntity>.toLocalPostDto(): List<Post> =
+    map { it.toDto() }

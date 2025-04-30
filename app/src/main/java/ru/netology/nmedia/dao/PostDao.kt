@@ -6,16 +6,30 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.entities.PostEntity
 
 @Dao
 interface PostDao {
 
     @Query("SELECT * FROM PostEntity ORDER BY ID DESC")
-    fun getAll(): LiveData<List<PostEntity>>
+    fun getAll(): Flow<List<PostEntity>>
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(post: PostEntity)
+
+    @Query("SELECT * FROM PostEntity WHERE hidden = 0 ORDER BY id DESC")
+    fun getVisiblePosts(): Flow<List<PostEntity>>
+
+    @Query("SELECT COUNT(*) FROM PostEntity WHERE hidden = 1")
+    fun getNewerCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM PostEntity WHERE hidden = 1 AND isSynced = 1")
+    fun getHiddenSyncedCount(): Flow<Int>
+
+    @Query("UPDATE PostEntity SET hidden = 0 WHERE hidden = 1 AND isSynced = 1")
+    suspend fun unhideAllSyncedPosts()
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -24,8 +38,6 @@ interface PostDao {
     @Query("UPDATE PostEntity SET content=:text WHERE id=:id")
     suspend fun edit(id: Long, text: String)
 
-    /*suspend fun save(post: PostEntity) =
-        if (post.id == 0L) insert(post) else edit(post.id, post.content)*/
     suspend fun save(post: PostEntity) {
         if (post.id == 0L) {
             insert(post)
@@ -33,7 +45,6 @@ interface PostDao {
             update(post.id, post.content, post.published, post.isSynced)
         }
     }
-
 
     @Query(
         """UPDATE PostEntity SET likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
@@ -83,6 +94,6 @@ interface PostDao {
         published: Long,
         isSynced: Boolean
     )
-
-
+    @Query("SELECT * FROM PostEntity")
+    suspend fun getAllNow(): List<PostEntity>
 }
