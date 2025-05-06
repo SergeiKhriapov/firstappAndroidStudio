@@ -4,8 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import okhttp3.Dispatcher
-import ru.netology.nmedia.api.PostsApi
+import ru.netology.nmedia.api.Api
 import ru.netology.nmedia.dao.LocalPostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entities.LocalPostEntity
@@ -48,7 +47,7 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao) {
                         "Отправка черновика ${localPost.idLocal} на сервер..."
                     )
 
-                    PostsApi.retrofitService.save(postDto)
+                    Api.retrofitService.save(postDto)
                     dao.removeByIdLocal(localPost.idLocal)
 
                     Log.d(

@@ -33,4 +33,10 @@
     <string name="error_local_like">error_local_like</string>
     <string name="extended_fab_content_desc">make hidden visible</string>
     <string name="extended_fab_label">Свежие записи</string>
+    <string name="new_post_button">New Post</string>
+    <string name="take_photo">Take photo</string>
+    <string name="pick_photo">Pick photo</string>
+    <string name="remove_photo">remove_photo</string>
+    <string name="preview_photo">preview photo</string>
+    <string name="photo_pick_error">Photo pick error</string>
 </resources>

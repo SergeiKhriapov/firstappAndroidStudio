@@ -41,7 +41,7 @@ class PostsAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(post: Post) = with(binding) {
-            content.text = post.content
+            content.text = "http://10.0.2.2:9999/media/${post.attachment?.url}"
             author.text = post.author
             val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
             val formattedDate =
@@ -66,7 +66,7 @@ class PostsAdapter(
             // Отображение изображения в вложении, если оно есть
             if (post.attachment != null) {
                 attachmentContainer.visibility = View.VISIBLE
-                val imageUrl = "http://10.0.2.2:9999/images/${post.attachment.url}"
+                val imageUrl = "http://10.0.2.2:9999/media/${post.attachment.url}"
                 Glide.with(binding.attachmentContainer)
                     .load(imageUrl)
                     .placeholder(R.drawable.hourglass_24_ic)

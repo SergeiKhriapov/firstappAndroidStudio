@@ -1,5 +1,6 @@
 package ru.netology.nmedia.entities
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netology.nmedia.dto.Attachment
@@ -21,13 +22,28 @@ data class LocalPostEntity(
     val viewsCount: Int = 0,
     val video: String? = null,
     val isSynced: Boolean = false,
-
-    // Исправил вложенные файлы. Спросить про конвертер json.
-    val attachmentUrl: String? = null,
-    val attachmentDescription: String? = null,
-    val attachmentType: String? = null,
+    @Embedded
+    val attachment: AttachmentEmbedded? = null,
 
     ) {
+    companion object {
+        fun fromDto(dto: Post): LocalPostEntity = LocalPostEntity(
+            idLocal = dto.idLocal,
+            id = dto.id,
+            author = dto.author,
+            authorAvatar = dto.authorAvatar,
+            content = dto.content,
+            published = dto.published,
+            likedByMe = dto.likedByMe,
+            likes = dto.likes,
+            shareCount = dto.shareCount,
+            viewsCount = dto.viewsCount,
+            video = dto.video,
+            attachment = dto.attachment?.let { AttachmentEmbedded.fromDto(it) },
+
+            )
+    }
+
     fun toDto() = Post(
         id = 0,
         idLocal = idLocal,
@@ -40,33 +56,8 @@ data class LocalPostEntity(
         shareCount = shareCount,
         viewsCount = viewsCount,
         video = video,
-        attachment = if (attachmentUrl != null && attachmentType != null)
-            Attachment(
-                url = attachmentUrl,
-                description = attachmentDescription,
-                type = AttachmentType.valueOf(attachmentType)
-            )
-        else null
+        attachment = attachment?.toDto(),
     )
-
-    companion object {
-        fun fromDto(post: Post): LocalPostEntity = LocalPostEntity(
-            idLocal = post.idLocal,
-            id = post.id,
-            author = post.author,
-            authorAvatar = post.authorAvatar,
-            content = post.content,
-            published = post.published,
-            likedByMe = post.likedByMe,
-            likes = post.likes,
-            shareCount = post.shareCount,
-            viewsCount = post.viewsCount,
-            video = post.video,
-            attachmentUrl = post.attachment?.url,
-            attachmentDescription = post.attachment?.description,
-            attachmentType = post.attachment?.type?.name,
-        )
-    }
 }
 
 fun List<Post>.toLocalPostEntity(): List<LocalPostEntity> = map { LocalPostEntity.fromDto(it) }

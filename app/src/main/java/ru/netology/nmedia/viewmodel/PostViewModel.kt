@@ -1,6 +1,7 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -8,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import com.bumptech.glide.util.Util
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,13 +20,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Attachment
+import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
+import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.LocalPostRepositoryImpl
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.io.File
+import java.net.URI
 
 private val emptyPost = Post(
     id = 0,
@@ -65,6 +72,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val hiddenSyncedCount: LiveData<Int> = repository.getHiddenSyncedCount()
         .asLiveData(Dispatchers.Default)
 
+    private val _photo = MutableLiveData<PhotoModel?>(null)
+    val photo: LiveData<PhotoModel?>
+        get() = _photo
+
+
     private var draftContent: String? = null
 
     private val allPosts: StateFlow<List<Post>> = combine(
@@ -99,6 +111,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         loadPosts()
     }
 
+    fun changePhoto(uri: Uri, file: File) {
+        _photo.value = PhotoModel(uri, file)
+    }
+    fun removePhoto(){
+        _photo.value = null
+    }
+
     fun loadPosts() = viewModelScope.launch {
         syncPosts()
         try {
@@ -110,7 +129,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             _dataState.value = FeedModelState(error = true)
         }
     }
-
 
 
     fun refreshPosts() = viewModelScope.launch {
@@ -130,7 +148,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _syncError.value = hasError
     }
 
-    fun saveContent(content: String) {
+    /*fun saveContent(content: String) {
         edited.value?.let { post ->
             viewModelScope.launch {
                 val updatedPost = post.copy(
@@ -168,6 +186,96 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 _edited.value = emptyPost
             }
         }
+    }*/
+
+    fun saveContent(content: String) {
+        edited.value?.let { originalPost ->
+            viewModelScope.launch {
+                try {
+                    val photo = _photo.value
+                    val file = photo?.file
+
+                    // Сохраняем файл в локальное хранилище
+                    var attachment: Attachment? = null
+                    file?.let {
+                        val savedFile = saveToInternalStorage(it)
+                        attachment = Attachment(
+                            url = savedFile.absolutePath,
+                            type = AttachmentType.IMAGE
+                        )
+                    }
+
+                    // Обновляем пост с вложением
+                    val updatedPost = originalPost.copy(
+                        content = content,
+                        published = System.currentTimeMillis(),
+                        isSynced = false,
+                        attachment = attachment
+                    )
+
+                    // Сохраняем в локальный репозиторий
+                    val localId = localRepository.save(updatedPost)
+
+                    // Синхронизируем
+                    syncPosts()
+
+                    _postCreated.postValue(Unit)
+                    _edited.value = emptyPost
+                    _photo.value = null
+                } catch (e: Exception) {
+                    Log.e("PostViewModel", "Error saving content", e)
+                    _dataState.value = FeedModelState(error = true)
+                }
+            }
+        } ?: run {
+            viewModelScope.launch {
+                try {
+                    val photo = _photo.value
+                    val file = photo?.file
+
+                    var attachment: Attachment? = null
+                    file?.let {
+                        val savedFile = saveToInternalStorage(it)
+                        attachment = Attachment(
+                            url = savedFile.absolutePath,
+                            type = AttachmentType.IMAGE
+                        )
+                    }
+
+                    val newPost = Post(
+                        id = 0,
+                        idLocal = 0,
+                        author = "",
+                        authorAvatar = "",
+                        content = content,
+                        published = System.currentTimeMillis(),
+                        isSynced = false,
+                        hidden = false,
+                        likedByMe = false,
+                        likes = 0,
+                        attachment = attachment
+                    )
+
+                    val localId = localRepository.save(newPost)
+                    syncPosts()
+
+                    _postCreated.postValue(Unit)
+                    _edited.value = emptyPost
+                    _photo.value = null
+                } catch (e: Exception) {
+                    Log.e("PostViewModel", "Error creating post", e)
+                    _dataState.value = FeedModelState(error = true)
+                }
+            }
+        }
+    }
+
+    private fun saveToInternalStorage(file: File): File {
+        val context = getApplication<Application>().applicationContext
+        val internalDir = context.filesDir
+        val internalFile = File(internalDir, file.name)
+        file.copyTo(internalFile, overwrite = true)
+        return internalFile
     }
 
     fun likeById(id: Long) = viewModelScope.launch {
@@ -204,6 +312,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             _dataState.postValue(FeedModelState(error = true))
         }
     }
+
     fun unhideAllSyncedPosts() {
         viewModelScope.launch {
             repository.unhideAllSyncedPosts()

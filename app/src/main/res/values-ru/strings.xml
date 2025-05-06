@@ -34,4 +34,10 @@
     <string name="error_local_like">ошибка лайка</string>
     <string name="extended_fab_content_desc">сделать невидимые видимыми</string>
     <string name="extended_fab_label">Свежие записи</string>
+    <string name="new_post_button">Новый пост</string>
+    <string name="take_photo">Сделать фото</string>
+    <string name="pick_photo">Выбрать фото</string>
+    <string name="remove_photo">Удалить_фото</string>
+    <string name="preview_photo">Превью фото</string>
+    <string name="photo_pick_error">Ошибка выбора фотографии</string>
 </resources>
