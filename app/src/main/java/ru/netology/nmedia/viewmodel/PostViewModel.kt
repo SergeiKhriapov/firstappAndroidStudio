@@ -147,8 +147,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val hasError = localRepository.syncUnsyncedPosts()
         _syncError.value = hasError
     }
-
-    /*fun saveContent(content: String) {
+/*
+    fun saveContent(content: String) {
         edited.value?.let { post ->
             viewModelScope.launch {
                 val updatedPost = post.copy(
@@ -189,13 +189,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }*/
 
     fun saveContent(content: String) {
-        edited.value?.let { originalPost ->
+        edited.value?.let { post ->
             viewModelScope.launch {
                 try {
                     val photo = _photo.value
                     val file = photo?.file
 
-                    // Сохраняем файл в локальное хранилище
                     var attachment: Attachment? = null
                     file?.let {
                         val savedFile = saveToInternalStorage(it)
@@ -205,70 +204,48 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
 
-                    // Обновляем пост с вложением
-                    val updatedPost = originalPost.copy(
+                    val updatedPost = post.copy(
                         content = content,
                         published = System.currentTimeMillis(),
                         isSynced = false,
                         attachment = attachment
                     )
 
-                    // Сохраняем в локальный репозиторий
-                    val localId = localRepository.save(updatedPost)
+                    if (post.isSynced) {
+                        repository.save(updatedPost.copy(isSynced = true))
+                        localRepository.update(updatedPost.copy(isSynced = true))
+                    } else if (post.idLocal != 0L) {
+                        localRepository.update(updatedPost)
+                        try {
+                            repository.save(updatedPost.copy(isSynced = true))
+                            localRepository.removeById(updatedPost.idLocal)
+                        } catch (e: Exception) {
+                            Log.e("PostViewModel", "Error syncing local post", e)
+                        }
+                    } else {
+                        val localId = localRepository.save(updatedPost)
+                        val savedPost = updatedPost.copy(idLocal = localId)
 
-                    // Синхронизируем
-                    syncPosts()
+                        try {
+                            repository.save(savedPost.copy(isSynced = true))
+                            localRepository.removeById(savedPost.idLocal)
+                        } catch (e: Exception) {
+                            Log.e("PostViewModel", "Error syncing new post", e)
+                        }
+                    }
 
-                    _postCreated.postValue(Unit)
+                    _postCreated.value = Unit
                     _edited.value = emptyPost
                     _photo.value = null
+
                 } catch (e: Exception) {
                     Log.e("PostViewModel", "Error saving content", e)
                     _dataState.value = FeedModelState(error = true)
                 }
             }
-        } ?: run {
-            viewModelScope.launch {
-                try {
-                    val photo = _photo.value
-                    val file = photo?.file
-
-                    var attachment: Attachment? = null
-                    file?.let {
-                        val savedFile = saveToInternalStorage(it)
-                        attachment = Attachment(
-                            url = savedFile.absolutePath,
-                            type = AttachmentType.IMAGE
-                        )
-                    }
-
-                    val newPost = Post(
-                        id = 0,
-                        idLocal = 0,
-                        author = "",
-                        authorAvatar = "",
-                        content = content,
-                        published = System.currentTimeMillis(),
-                        isSynced = false,
-                        hidden = false,
-                        likedByMe = false,
-                        likes = 0,
-                        attachment = attachment
-                    )
-
-                    val localId = localRepository.save(newPost)
-                    syncPosts()
-
-                    _postCreated.postValue(Unit)
-                    _edited.value = emptyPost
-                    _photo.value = null
-                } catch (e: Exception) {
-                    Log.e("PostViewModel", "Error creating post", e)
-                    _dataState.value = FeedModelState(error = true)
-                }
-            }
         }
     }
+
 
     private fun saveToInternalStorage(file: File): File {
         val context = getApplication<Application>().applicationContext

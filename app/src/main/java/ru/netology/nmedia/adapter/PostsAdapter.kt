@@ -41,7 +41,7 @@ class PostsAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(post: Post) = with(binding) {
-            content.text = "http://10.0.2.2:9999/media/${post.attachment?.url}"
+            content.text = post.content
             author.text = post.author
             val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
             val formattedDate =
@@ -63,10 +63,14 @@ class PostsAdapter(
                 .circleCrop()
                 .into(binding.avatar)
 
-            // Отображение изображения в вложении, если оно есть
-            if (post.attachment != null) {
+            // Отображение изображения localPostEntaty и PostEntaty
+            if (post.attachment?.url != null) {
                 attachmentContainer.visibility = View.VISIBLE
-                val imageUrl = "http://10.0.2.2:9999/media/${post.attachment.url}"
+                val imageUrl = if (post.isSynced)
+                    "http://10.0.2.2:9999/media/${post.attachment.url}"
+                else
+                    post.attachment.url
+
                 Glide.with(binding.attachmentContainer)
                     .load(imageUrl)
                     .placeholder(R.drawable.hourglass_24_ic)
@@ -76,6 +80,7 @@ class PostsAdapter(
             } else {
                 attachmentContainer.visibility = View.GONE
             }
+
 
             if (!post.video.isNullOrEmpty()) {
                 videoPreviewImage.visibility = View.VISIBLE
