@@ -73,6 +73,12 @@ class FeedFragment : Fragment() {
                 )
             }
 
+            override fun focusOnAttachment(post: Post) {
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_focusOnAttachmentFragment,
+                    bundleOf("idFocusPost" to post.id)
+                )
+            }
             override fun showError(message: String) {
                 Log.e("FeedFragment", "Ошибка: $message")
             }

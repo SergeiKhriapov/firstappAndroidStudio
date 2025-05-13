@@ -41,7 +41,7 @@ class PostsAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(post: Post) = with(binding) {
-            content.text = post.content
+            content.text = post.attachment?.url
             author.text = post.author
             val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
             val formattedDate =
@@ -104,6 +104,9 @@ class PostsAdapter(
 
             content.setOnClickListener {
                 onInteractionListener.focusOnPost(post)
+            }
+            attachmentContainer.setOnClickListener {
+                onInteractionListener.focusOnAttachment(post)
             }
 
             menu.setOnClickListener {

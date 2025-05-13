@@ -147,23 +147,44 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val hasError = localRepository.syncUnsyncedPosts()
         _syncError.value = hasError
     }
-/*
+
     fun saveContent(content: String) {
         edited.value?.let { post ->
             viewModelScope.launch {
-                val updatedPost = post.copy(
-                    content = content,
-                    published = System.currentTimeMillis(),
-                    isSynced = false
-                )
                 try {
+                    val photo = _photo.value
+                    val file = photo?.file
+
+                    var attachment: Attachment? = null
+
+                    file?.let {
+                        val savedFile = saveToInternalStorage(it)
+                        attachment = Attachment(
+                            url = savedFile.absolutePath,
+                            type = AttachmentType.IMAGE
+                        )
+                    }
+
+                    val updatedPost = post.copy(
+                        content = content,
+                        published = System.currentTimeMillis(),
+                        isSynced = false,
+                        attachment = attachment
+                    )
+
+
                     if (post.isSynced) {
-                        repository.save(updatedPost.copy(isSynced = true))
+                        file?.let {
+                            repository.save(updatedPost.copy(isSynced = true), it)
+                        } ?: repository.save(post)
+
                         localRepository.update(updatedPost.copy(isSynced = true))
                     } else if (post.idLocal != 0L) {
                         localRepository.update(updatedPost)
                         try {
-                            repository.save(updatedPost.copy(isSynced = true))
+                            file?.let {
+                                repository.save(updatedPost.copy(isSynced = true), it)
+                            } ?: repository.save(post)
                             localRepository.removeById(updatedPost.idLocal)
                         } catch (e: Exception) {
                             Log.e("PostViewModel", "Error syncing local post", e)
@@ -179,16 +200,19 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                             Log.e("PostViewModel", "Error syncing new post", e)
                         }
                     }
+
+                    _postCreated.value = Unit
+                    _edited.value = emptyPost
+                    _photo.value = null
+
                 } catch (e: Exception) {
                     Log.e("PostViewModel", "Error saving content", e)
+                    _dataState.value = FeedModelState(error = true)
                 }
-                _postCreated.value = Unit
-                _edited.value = emptyPost
             }
         }
-    }*/
-
-    fun saveContent(content: String) {
+    }
+    /*fun saveContent(content: String) {
         edited.value?.let { post ->
             viewModelScope.launch {
                 try {
@@ -244,7 +268,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-    }
+    }*/
 
 
     private fun saveToInternalStorage(file: File): File {

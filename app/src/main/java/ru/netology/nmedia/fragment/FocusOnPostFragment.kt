@@ -10,7 +10,6 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
@@ -22,7 +21,6 @@ import kotlin.getValue
 
 class FocusOnPostFragment : Fragment() {
 
-    /*private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
     private val viewModel: PostViewModel by activityViewModels()
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +39,7 @@ class FocusOnPostFragment : Fragment() {
                 val formattedDate = SimpleDateFormat(
                     "yyyy-MM-dd HH:mm:ss",
                     Locale.getDefault()
-                ).format(currentPost.published)
+                ).format(currentPost.published * 1000)
                 binding.published.text = formattedDate
 
                 binding.like.text = currentPost.likes.toString()
@@ -60,7 +58,7 @@ class FocusOnPostFragment : Fragment() {
 
                 if (currentPost.attachment != null) {
                     binding.attachmentContainer.visibility = View.VISIBLE
-                    val imageUrl = "http://10.0.2.2:9999/images/${currentPost.attachment.url}"
+                    val imageUrl = "http://10.0.2.2:9999/media/${currentPost.attachment.url}"
                     Glide.with(binding.attachmentContainer)
                         .load(imageUrl)
                         .placeholder(R.drawable.hourglass_24_ic)

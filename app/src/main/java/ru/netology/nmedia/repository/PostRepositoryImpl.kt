@@ -51,7 +51,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             if (!response.isSuccessful) throw RuntimeException("Ошибка сохранения: ${response.code()}")
             val saved = response.body() ?: throw RuntimeException("Пустой ответ при сохранении")
             dao.insert(PostEntity.fromDto(saved.copy(isSynced = true)))
-            Log.d("PostRepositoryImpl", "Пост успешно сохранён: $saved")
+            Log.d("PostRepositoryImpl", "Пост успешно сохранён МЕТОД БЕЗ ФАЙЛА: $saved")
             saved
         } catch (e: Exception) {
             Log.e("PostRepositoryImpl", "Ошибка сохранения поста", e)
@@ -176,12 +176,10 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     }
 
     override fun shareById(id: Long) {
-        Log.d("PostRepositoryImpl", "shareById пока не реализован: id=$id")
         // todo
     }
 
     override fun viewById(id: Long) {
-        Log.d("PostRepositoryImpl", "viewById пока не реализован: id=$id")
         // todo
     }
 }

@@ -10,5 +10,6 @@ interface OnInteractionListener {
     fun onEdit(post: Post)
     fun onVideoClick(post: Post)
     fun focusOnPost(post: Post)
+    fun focusOnAttachment(post: Post)
     fun showError(message: String)
 }
