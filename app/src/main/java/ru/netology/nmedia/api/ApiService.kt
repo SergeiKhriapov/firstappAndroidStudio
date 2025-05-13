@@ -51,9 +51,6 @@ interface PostsApiService {
     @DELETE("posts/{id}/likes")
     suspend fun dislikeById(@Path("id") id: Long): Response<Post>
 
-    /*@Multipart
-    @POST("media")
-    fun upload(@Part part: MultipartBody.Part): Media*/
     @Multipart
     @POST("media")
     suspend fun upload(@Part media: MultipartBody.Part): Response<Media>

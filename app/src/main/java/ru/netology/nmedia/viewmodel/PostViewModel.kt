@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import com.bumptech.glide.util.Util
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +31,6 @@ import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
-import java.net.URI
 
 private val emptyPost = Post(
     id = 0,
@@ -45,9 +43,10 @@ private val emptyPost = Post(
     likes = 0,
 )
 
-class PostViewModel(application: Application, mediaRepository: MediaRepository) :
+class PostViewModel(application: Application) :
     AndroidViewModel(application) {
     private val database = AppDb.getInstance(application)
+    private val mediaRepository = MediaRepository()
     private val repository: PostRepository =
         PostRepositoryImpl(database.postDao, mediaRepository)
 
@@ -216,65 +215,6 @@ class PostViewModel(application: Application, mediaRepository: MediaRepository) 
             }
         }
     }
-
-    /*fun saveContent(content: String) {
-        edited.value?.let { post ->
-            viewModelScope.launch {
-                try {
-                    val photo = _photo.value
-                    val file = photo?.file
-
-                    var attachment: Attachment? = null
-                    file?.let {
-                        val savedFile = saveToInternalStorage(it)
-                        attachment = Attachment(
-                            url = savedFile.absolutePath,
-                            type = AttachmentType.IMAGE
-                        )
-                    }
-
-                    val updatedPost = post.copy(
-                        content = content,
-                        published = System.currentTimeMillis(),
-                        isSynced = false,
-                        attachment = attachment
-                    )
-
-                    if (post.isSynced) {
-                        repository.save(updatedPost.copy(isSynced = true))
-                        localRepository.update(updatedPost.copy(isSynced = true))
-                    } else if (post.idLocal != 0L) {
-                        localRepository.update(updatedPost)
-                        try {
-                            repository.save(updatedPost.copy(isSynced = true))
-                            localRepository.removeById(updatedPost.idLocal)
-                        } catch (e: Exception) {
-                            Log.e("PostViewModel", "Error syncing local post", e)
-                        }
-                    } else {
-                        val localId = localRepository.save(updatedPost)
-                        val savedPost = updatedPost.copy(idLocal = localId)
-
-                        try {
-                            repository.save(savedPost.copy(isSynced = true))
-                            localRepository.removeById(savedPost.idLocal)
-                        } catch (e: Exception) {
-                            Log.e("PostViewModel", "Error syncing new post", e)
-                        }
-                    }
-
-                    _postCreated.value = Unit
-                    _edited.value = emptyPost
-                    _photo.value = null
-
-                } catch (e: Exception) {
-                    Log.e("PostViewModel", "Error saving content", e)
-                    _dataState.value = FeedModelState(error = true)
-                }
-            }
-        }
-    }*/
-
 
     private fun saveToInternalStorage(file: File): File {
         val context = getApplication<Application>().applicationContext

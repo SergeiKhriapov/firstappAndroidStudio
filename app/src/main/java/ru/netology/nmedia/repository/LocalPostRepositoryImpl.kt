@@ -78,59 +78,6 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRe
         return wasError
     }
 
-
-    /*suspend fun syncUnsyncedPosts(): Boolean {
-        var wasError = false
-
-        try {
-            Log.d("LocalPostRepository", "Начинаем синхронизацию черновиков...")
-
-            val unsyncedPosts = dao.getAllUnsynced()
-
-            if (unsyncedPosts.isEmpty()) {
-                Log.d("LocalPostRepository", "Нет черновиков для синхронизации.")
-                return false
-            }
-
-            Log.d(
-                "LocalPostRepository",
-                "Найдено ${unsyncedPosts.size} несинхронизированных черновиков."
-            )
-
-            for (localPost in unsyncedPosts) {
-                try {
-                    val postDto = localPost.toDto()
-                    Log.d(
-                        "LocalPostRepository",
-                        "Отправка черновика ${localPost.idLocal} на сервер..."
-                    )
-
-                    Api.retrofitService.save(postDto)
-                    dao.removeByIdLocal(localPost.idLocal)
-
-                    Log.d(
-                        "LocalPostRepository",
-                        "Черновик ${localPost.idLocal} синхронизирован и удалён."
-                    )
-                } catch (e: Exception) {
-                    wasError = true
-                    Log.d(
-                        "LocalPostRepository",
-                        "Ошибка при синхронизации черновика ${localPost.idLocal}",
-                        e
-                    )
-                }
-            }
-
-        } catch (e: Exception) {
-            wasError = true
-            Log.e("LocalPostRepository", "Ошибка при общей синхронизации: ${e.message}", e)
-        }
-
-        return wasError
-    }*/
-
-
     suspend fun update(post: Post) {
         dao.updateLocal(LocalPostEntity.fromDto(post))
     }

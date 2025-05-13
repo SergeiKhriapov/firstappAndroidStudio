@@ -4,8 +4,6 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.Api
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.*
@@ -164,36 +162,6 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
             throw e
         }
     }
-
-    /*private suspend fun upload(file: File): Media {
-        Log.d("PostRepositoryImpl", "Загрузка файла: ${file.name}")
-        val part = MultipartBody.Part.createFormData(
-            "file", file.name, file.asRequestBody()
-        )
-        val media = Api.retrofitService.upload(part)
-        Log.d("PostRepositoryImpl", "Файл успешно загружен. Media ID: ${media.id}")
-        return media
-    }*/
-
-   /* suspend fun upload(file: File): Media {
-        Log.d("PostRepositoryImpl", "Загрузка файла: ${file.name}")
-        val part = MultipartBody.Part.createFormData(
-            "file", file.name, file.asRequestBody()
-        )
-        val response = Api.retrofitService.upload(part)
-        if (response.isSuccessful) {
-            val media = response.body()
-            if (media != null) {
-                Log.d("PostRepositoryImpl", "Файл успешно загружен. Media ID: ${media.id}")
-                return media
-            } else {
-                throw RuntimeException("Ошибка: пустое тело ответа при загрузке файла")
-            }
-        } else {
-            throw RuntimeException("Ошибка загрузки файла: ${response.code()} ${response.message()}")
-        }
-    }
-*/
     override fun shareById(id: Long) {
         // todo
     }
