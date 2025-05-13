@@ -27,6 +27,7 @@ import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.LocalPostRepositoryImpl
+import ru.netology.nmedia.repository.MediaRepository
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
@@ -44,14 +45,14 @@ private val emptyPost = Post(
     likes = 0,
 )
 
-class PostViewModel(application: Application) : AndroidViewModel(application) {
+class PostViewModel(application: Application, mediaRepository: MediaRepository) :
+    AndroidViewModel(application) {
     private val database = AppDb.getInstance(application)
-
     private val repository: PostRepository =
-        PostRepositoryImpl(database.postDao)
+        PostRepositoryImpl(database.postDao, mediaRepository)
 
     private val localRepository: LocalPostRepositoryImpl =
-        LocalPostRepositoryImpl(database.localPostDao)
+        LocalPostRepositoryImpl(database.localPostDao, mediaRepository)
 
     private val _dataState = MutableLiveData<FeedModelState>()
 
@@ -114,7 +115,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun changePhoto(uri: Uri, file: File) {
         _photo.value = PhotoModel(uri, file)
     }
-    fun removePhoto(){
+
+    fun removePhoto() {
         _photo.value = null
     }
 
@@ -194,7 +196,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                         val savedPost = updatedPost.copy(idLocal = localId)
 
                         try {
-                            repository.save(savedPost.copy(isSynced = true))
+                            file?.let {
+                                repository.save(savedPost.copy(isSynced = true), it)
+                            } ?: repository.save(post)
                             localRepository.removeById(savedPost.idLocal)
                         } catch (e: Exception) {
                             Log.e("PostViewModel", "Error syncing new post", e)
@@ -212,6 +216,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
     /*fun saveContent(content: String) {
         edited.value?.let { post ->
             viewModelScope.launch {

@@ -13,7 +13,7 @@ import ru.netology.nmedia.entities.*
 import ru.netology.nmedia.error.ApiError
 import java.io.File
 
-class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
+class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: MediaRepository) : PostRepository {
 
     override val data: Flow<List<Post>> = dao.getAll()
         .map(List<PostEntity>::toLocalPostDto)
@@ -150,7 +150,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun save(post: Post, file: File): Post {
         Log.d("PostRepositoryImpl", "Сохранение поста с изображением: $post, файл: ${file.name}")
         return try {
-            val media = upload(file)
+            val media = mediaRepository.upload(file)
             val response = Api.retrofitService.save(
                 post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
             )
@@ -165,7 +165,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
-    private suspend fun upload(file: File): Media {
+    /*private suspend fun upload(file: File): Media {
         Log.d("PostRepositoryImpl", "Загрузка файла: ${file.name}")
         val part = MultipartBody.Part.createFormData(
             "file", file.name, file.asRequestBody()
@@ -173,8 +173,27 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         val media = Api.retrofitService.upload(part)
         Log.d("PostRepositoryImpl", "Файл успешно загружен. Media ID: ${media.id}")
         return media
-    }
+    }*/
 
+   /* suspend fun upload(file: File): Media {
+        Log.d("PostRepositoryImpl", "Загрузка файла: ${file.name}")
+        val part = MultipartBody.Part.createFormData(
+            "file", file.name, file.asRequestBody()
+        )
+        val response = Api.retrofitService.upload(part)
+        if (response.isSuccessful) {
+            val media = response.body()
+            if (media != null) {
+                Log.d("PostRepositoryImpl", "Файл успешно загружен. Media ID: ${media.id}")
+                return media
+            } else {
+                throw RuntimeException("Ошибка: пустое тело ответа при загрузке файла")
+            }
+        } else {
+            throw RuntimeException("Ошибка загрузки файла: ${response.code()} ${response.message()}")
+        }
+    }
+*/
     override fun shareById(id: Long) {
         // todo
     }

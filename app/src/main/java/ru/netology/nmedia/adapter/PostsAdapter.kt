@@ -41,7 +41,7 @@ class PostsAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(post: Post) = with(binding) {
-            content.text = post.attachment?.url
+            content.text = post.content
             author.text = post.author
             val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
             val formattedDate =
