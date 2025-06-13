@@ -4,19 +4,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
-import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.formatCount
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.log
 
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener
@@ -47,11 +47,11 @@ class PostsAdapter(
             val formattedDate =
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
             published.text = formattedDate
-
             like.isChecked = post.likedByMe
             like.setText(formatCount(post.likes))
             share.setText(formatCount(post.shareCount))
             views.setText(formatCount(post.viewsCount))
+            menu.isVisible = post.ownedByMe
 
             // Загрузка аватарки
             val avatarUrl = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
@@ -108,7 +108,6 @@ class PostsAdapter(
             attachmentContainer.setOnClickListener {
                 onInteractionListener.focusOnAttachment(post)
             }
-
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.menu_options)

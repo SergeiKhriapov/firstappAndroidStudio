@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
+import kotlin.Long
 
 @Entity
 data class PostEntity(
@@ -12,6 +13,7 @@ data class PostEntity(
     val id: Long,
     val idLocal: Long,
     val author: String,
+    val authorId: Long,
     val authorAvatar: String,
     val content: String,
     val published: Long,
@@ -33,6 +35,7 @@ data class PostEntity(
             id = dto.id,
             idLocal = dto.idLocal,
             author = dto.author,
+            authorId = dto.authorId,
             authorAvatar = dto.authorAvatar,
             content = dto.content,
             published = dto.published,
@@ -51,6 +54,7 @@ data class PostEntity(
         id = id,
         idLocal = idLocal,
         author = author,
+        authorId = authorId,
         authorAvatar = authorAvatar,
         content = content,
         published = published,

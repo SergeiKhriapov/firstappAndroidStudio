@@ -10,14 +10,17 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
@@ -36,6 +39,7 @@ private val emptyPost = Post(
     id = 0,
     idLocal = 0,
     author = "",
+    authorId = 0,
     authorAvatar = "",
     content = "",
     published = 0,
@@ -45,6 +49,22 @@ private val emptyPost = Post(
 
 class PostViewModel(application: Application) :
     AndroidViewModel(application) {
+    private val appAuth = AppAuth.getInstance() // Добавим явное поле
+
+    /*val isAuthenticated: LiveData<Boolean> = appAuth
+        .data
+        .map { it?.id != null && it.id != 0L }
+        .asLiveData()*/
+
+    val isAuthenticated: StateFlow<Boolean> = appAuth.data
+        .map { it?.id != null && it.id != 0L }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            false
+        )
+
+
     private val database = AppDb.getInstance(application)
     private val mediaRepository = MediaRepository()
     private val repository: PostRepository =
@@ -92,20 +112,30 @@ class PostViewModel(application: Application) :
         emptyList()
     )
 
-    val data: LiveData<FeedModel> = allPosts
-        .map { posts ->
-            val visiblePosts = posts.filter { !it.hidden }
-            FeedModel(visiblePosts)
-        }
-        .catch { it.printStackTrace() }
-        .asLiveData(Dispatchers.Default)
+    val data: Flow<FeedModel> =
+        AppAuth.getInstance().data
+            .flatMapLatest { token ->
+                allPosts
+                    .map { posts ->
+                        FeedModel(
+                            posts
+                                .filter { !it.hidden }          // фильтруем «скрытые»
+                                .map { post ->                  // для каждого post
+                                    post.copy(                  // делаем копию
+                                        ownedByMe = token?.id == post.authorId
+                                    )
+                                }
+                        )
+                    }
+                    .catch { e -> e.printStackTrace() }
+            }
 
 
-    val newerCount = data.switchMap {
+    val newerCount: Flow<Int> = data.flatMapLatest {
         repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
             .catch { _dataState.postValue(FeedModelState(error(true))) }
-            .asLiveData(Dispatchers.Default)
     }
+
 
     init {
         loadPosts()
@@ -155,7 +185,6 @@ class PostViewModel(application: Application) :
                 try {
                     val photo = _photo.value
                     val file = photo?.file
-
                     var attachment: Attachment? = null
 
                     file?.let {
@@ -177,7 +206,7 @@ class PostViewModel(application: Application) :
                     if (post.isSynced) {
                         file?.let {
                             repository.save(updatedPost.copy(isSynced = true), it)
-                        } ?: repository.save(post)
+                        } ?: repository.save(updatedPost)
 
                         localRepository.update(updatedPost.copy(isSynced = true))
                     } else if (post.idLocal != 0L) {
@@ -185,7 +214,7 @@ class PostViewModel(application: Application) :
                         try {
                             file?.let {
                                 repository.save(updatedPost.copy(isSynced = true), it)
-                            } ?: repository.save(post)
+                            } ?: repository.save(updatedPost)
                             localRepository.removeById(updatedPost.idLocal)
                         } catch (e: Exception) {
                             Log.e("PostViewModel", "Error syncing local post", e)
@@ -197,7 +226,7 @@ class PostViewModel(application: Application) :
                         try {
                             file?.let {
                                 repository.save(savedPost.copy(isSynced = true), it)
-                            } ?: repository.save(post)
+                            } ?: repository.save(savedPost.copy(isSynced = true))
                             localRepository.removeById(savedPost.idLocal)
                         } catch (e: Exception) {
                             Log.e("PostViewModel", "Error syncing new post", e)
@@ -223,12 +252,16 @@ class PostViewModel(application: Application) :
         file.copyTo(internalFile, overwrite = true)
         return internalFile
     }
+    val shouldShowAuthDialog = SingleLiveEvent<Unit>()
 
     fun likeById(id: Long) = viewModelScope.launch {
-        try {
-            val post =
-                repository.data.first().find { it.id == id || it.idLocal == id } ?: return@launch
+        if (isAuthenticated.value != true) {
+            shouldShowAuthDialog.postValue(Unit)
+            return@launch
+        }
 
+        try {
+            val post = repository.data.first().find { it.id == id || it.idLocal == id } ?: return@launch
             if (post.isSynced) {
                 if (post.likedByMe) {
                     repository.dislikeById(post.id)
@@ -237,13 +270,13 @@ class PostViewModel(application: Application) :
                 }
             } else {
                 _likeError.postValue(Unit)
-                return@launch
             }
         } catch (e: Exception) {
-            Log.e("PostViewModel", "Error liking or disliking post", e)
+            Log.e("PostViewModel", "Error liking post", e)
             _likeError.postValue(Unit)
         }
     }
+
 
     fun removeById(id: Long) = viewModelScope.launch {
         try {

@@ -10,6 +10,7 @@ import java.io.File
 class MediaRepository {
     suspend fun upload(file: File): Media {
         Log.d("MediaRepository", "Загрузка файла: ${file.name}")
+
         val part = MultipartBody.Part.createFormData(
             "file", file.name, file.asRequestBody()
         )

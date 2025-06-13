@@ -20,6 +20,9 @@ class SingleLiveEvent<T> : MutableLiveData<T>() {
             }
         }
     }
+    fun call() {
+        value = null
+    }
 
     override fun setValue(t: T?) {
         pending = true

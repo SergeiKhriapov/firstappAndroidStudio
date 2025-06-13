@@ -39,4 +39,11 @@
     <string name="remove_photo">remove_photo</string>
     <string name="preview_photo">preview photo</string>
     <string name="photo_pick_error">Photo pick error</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="logout">logout</string>
+    <string name="login_to_your_account">Login to your account</string>
+    <string name="sign_in_account">Sign In</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
 </resources>

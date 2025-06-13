@@ -4,6 +4,7 @@ data class Post(
     val id: Long,
     val idLocal: Long,
     val author: String,
+    val authorId: Long,
     val authorAvatar: String,
     val content: String,
     val published: Long,
@@ -14,5 +15,6 @@ data class Post(
     val video: String? = null,
     val attachment: Attachment? = null,
     val isSynced: Boolean = false,
-    val hidden: Boolean = false
+    val hidden: Boolean = false,
+    val ownedByMe: Boolean = false
 )

@@ -40,4 +40,11 @@
     <string name="remove_photo">Удалить_фото</string>
     <string name="preview_photo">Превью фото</string>
     <string name="photo_pick_error">Ошибка выбора фотографии</string>
+    <string name="sign_in">Войти</string>
+    <string name="sign_up">Зарегистрироваться</string>
+    <string name="logout">Выйти из системы</string>
+    <string name="login_to_your_account">Войдите в свою учетную запись</string>
+    <string name="sign_in_account">Войти</string>
+    <string name="login">Имя пользователя</string>
+    <string name="password">Пароль</string>
 </resources>

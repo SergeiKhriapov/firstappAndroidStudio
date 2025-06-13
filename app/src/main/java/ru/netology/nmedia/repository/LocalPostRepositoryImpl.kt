@@ -16,12 +16,18 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRe
     val data = dao.getAll()
         .map(List<LocalPostEntity>::toLocalPostDto)
         .flowOn(Dispatchers.Default)
+
     suspend fun getAll() {
+        Log.d("LocalPostRepository", "Вызван getAll() - пока не реализован")
         TODO("Not yet implemented")
     }
+
     suspend fun save(post: Post): Long {
-        return dao.insert(LocalPostEntity.fromDto(post))
+        val id = dao.insert(LocalPostEntity.fromDto(post))
+        Log.d("LocalPostRepository", "Сохранён локальный пост idLocal=$id, content='${post.content.take(30)}...'")
+        return id
     }
+
     suspend fun syncUnsyncedPosts(): Boolean {
         var wasError = false
 
@@ -37,36 +43,51 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRe
 
             Log.d("LocalPostRepository", "Найдено ${unsyncedPosts.size} несинхронизированных черновиков.")
 
-            for (localPost in unsyncedPosts) {
+            for ((index, localPost) in unsyncedPosts.withIndex()) {
                 try {
-                    var postDto = localPost.toDto()
-                    Log.d("LocalPostRepository", "Обработка черновика ${localPost.idLocal}...")
+                    Log.d(
+                        "LocalPostRepository",
+                        "Обработка черновика idLocal=${localPost.idLocal}, content='${localPost.content.take(30)}...', " +
+                                "вложение ${if (localPost.attachment != null) "присутствует" else "отсутствует"}"
+                    )
 
+                    var postDto = localPost.toDto()
                     val originalAttachment = postDto.attachment
 
                     if (originalAttachment != null) {
                         val file = File(originalAttachment.url)
+                        Log.d("LocalPostRepository", "Проверяем файл вложения: ${file.path}")
+
                         if (file.exists()) {
+                            Log.d("LocalPostRepository", "Файл найден, начинаем загрузку: ${file.name}")
                             val uploadedMedia = mediaRepository.upload(file)
                             postDto = postDto.copy(
                                 attachment = Attachment(
-                                    url = uploadedMedia.id.toString(), // передаём mediaId как url
+                                    url = uploadedMedia.id.toString(),
                                     type = originalAttachment.type
                                 )
                             )
                             Log.d("LocalPostRepository", "Файл ${file.name} успешно загружен, mediaId=${uploadedMedia.id}")
                         } else {
-                            Log.w("LocalPostRepository", "Файл не найден: ${originalAttachment.url}")
+                            Log.w("LocalPostRepository", "Файл вложения не найден: ${originalAttachment.url}")
+                            // Можно, например, решить не отправлять пост с отсутствующим файлом?
+                            // или продолжать без вложения?
                         }
                     }
 
+                    Log.d("LocalPostRepository", "Отправляем пост idLocal=${localPost.idLocal} на сервер...")
                     Api.retrofitService.save(postDto)
-                    dao.removeByIdLocal(localPost.idLocal)
+                    Log.d("LocalPostRepository", "Пост успешно сохранён на сервере: idLocal=${localPost.idLocal}")
 
-                    Log.d("LocalPostRepository", "Черновик ${localPost.idLocal} синхронизирован и удалён.")
+                    dao.removeByIdLocal(localPost.idLocal)
+                    Log.d("LocalPostRepository", "Локальный черновик удалён из БД: idLocal=${localPost.idLocal}")
+
+                    val remaining = unsyncedPosts.size - index - 1
+                    Log.d("LocalPostRepository", "Осталось черновиков для синхронизации: $remaining")
+
                 } catch (e: Exception) {
                     wasError = true
-                    Log.e("LocalPostRepository", "Ошибка при синхронизации черновика ${localPost.idLocal}", e)
+                    Log.e("LocalPostRepository", "Ошибка при синхронизации черновика idLocal=${localPost.idLocal}", e)
                 }
             }
 
@@ -75,31 +96,39 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRe
             Log.e("LocalPostRepository", "Ошибка при общей синхронизации: ${e.message}", e)
         }
 
+        Log.d("LocalPostRepository", "Синхронизация черновиков завершена, были ошибки: $wasError")
         return wasError
     }
 
+
     suspend fun update(post: Post) {
         dao.updateLocal(LocalPostEntity.fromDto(post))
+        Log.d("LocalPostRepository", "Обновлён локальный пост idLocal=${post.id}, content='${post.content.take(30)}...'")
     }
 
     suspend fun removeById(id: Long) {
         dao.removeByIdLocal(id)
+        Log.d("LocalPostRepository", "Удалён локальный пост idLocal=$id")
     }
 
     // Лайк и дизлайк не поддерживаются
     suspend fun likeById(id: Long): Post {
+        Log.w("LocalPostRepository", "Попытка поставить лайк черновику idLocal=$id - не поддерживается")
         throw UnsupportedOperationException("Likes are not supported for drafts")
     }
 
     suspend fun dislikeById(id: Long): Post {
+        Log.w("LocalPostRepository", "Попытка поставить дизлайк черновику idLocal=$id - не поддерживается")
         throw UnsupportedOperationException("Likes are not supported for drafts")
     }
 
     fun shareById(id: Long) {
-        //
+        Log.d("LocalPostRepository", "Вызван shareById для idLocal=$id (метод заглушка)")
+        // пусто
     }
 
     fun viewById(id: Long) {
-        //
+        Log.d("LocalPostRepository", "Вызван viewById для idLocal=$id (метод заглушка)")
+        // пусто
     }
 }

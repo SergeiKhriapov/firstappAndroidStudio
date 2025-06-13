@@ -11,8 +11,12 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -28,6 +32,7 @@ class FeedFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+
         val binding: FragmentFeedBinding = FragmentFeedBinding.inflate(inflater, container, false)
 
         // Создаем адаптер для списка постов
@@ -87,9 +92,13 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            Log.d("FeedFragment", "Наблюдаем за newerCount: $it")
-            println(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.newerCount.collect { value ->
+                    Log.d("FeedFragment", "Наблюдаем за newerCount: $value")
+                    println(value)
+                }
+            }
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -139,23 +148,40 @@ class FeedFragment : Fragment() {
                 }
                 .show()
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.data.collect { feedModel ->
+                    Log.d("FeedFragment", "Получено количество постов: ${feedModel.posts.size}")
+                    adapter.submitList(feedModel.posts) {
+                        /*binding.list.scheduleLayoutAnimation()*/
 
-        viewModel.data.observe(viewLifecycleOwner) { feedModel ->
-            Log.d("FeedFragment", "Получено количество постов: ${feedModel.posts.size}")
-            adapter.submitList(feedModel.posts) {
-                /*binding.list.scheduleLayoutAnimation()*/
-
-                binding.list.scrollToPosition(0) // простой, надёжный способ
-                binding.list.scheduleLayoutAnimation()
-
+                        binding.list.scrollToPosition(0) // простой, надёжный способ
+                        binding.list.scheduleLayoutAnimation()
+                    }
+                    binding.empty.isVisible = feedModel.empty
+                }
             }
-            binding.empty.isVisible = feedModel.empty
         }
-
         binding.addNewPost.setOnClickListener {
+            if (viewModel.isAuthenticated.value != true) {
+                viewModel.shouldShowAuthDialog.call()
+                return@setOnClickListener
+            }
+
             Log.d("FeedFragment", "Переход на экран создания нового поста")
             viewModel.cancelEditing()
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        viewModel.shouldShowAuthDialog.observe(viewLifecycleOwner) {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Авторизация")
+                .setMessage("Для лайка или создания поста необходимо авторизоваться. Перейти к авторизации?")
+                .setPositiveButton("Да") { _, _ ->
+                    findNavController().navigate(R.id.action_feedFragment_to_signInFragment)
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
         }
 
         viewModel.hiddenSyncedCount.observe(viewLifecycleOwner) { count ->
