@@ -60,7 +60,7 @@ class NewPostFragment : Fragment() {
                 }
 
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    if (isPosting) return true // !!! блок повторное нажатие
+                    if (isPosting) return true
 
                     val textSave = binding.edit.text.toString()
                     if (textSave.isBlank()) {
@@ -70,7 +70,7 @@ class NewPostFragment : Fragment() {
                             Snackbar.LENGTH_SHORT
                         ).setAnchorView(binding.bottomAppBar).show()
                     } else {
-                        isPosting = true // !!!!!!!!!блок
+                        isPosting = true
                         viewModel.saveContent(textSave)
                     }
                     AndroidUtils.hideKeyboard(requireView())

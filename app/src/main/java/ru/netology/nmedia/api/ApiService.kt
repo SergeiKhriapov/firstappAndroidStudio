@@ -3,6 +3,7 @@ package ru.netology.nmedia.api
 import android.view.PixelCopy.request
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -12,6 +13,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.RegistrationResponse
 
 private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
 
@@ -64,6 +66,15 @@ interface PostsApiService {
     @Multipart
     @POST("media")
     suspend fun upload(@Part media: MultipartBody.Part): Response<Media>
+
+    @Multipart
+    @POST("users/registration")
+    suspend fun registerWithPhoto(
+        @Part("login") login: RequestBody,
+        @Part("pass") pass: RequestBody,
+        @Part("name") name: RequestBody,
+        @Part media: MultipartBody.Part
+    ): Response<RegistrationResponse>
 }
 
 object Api {

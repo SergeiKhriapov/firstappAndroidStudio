@@ -32,7 +32,6 @@ class SignInFragment : Fragment() {
                 Snackbar.make(binding.root, "Пожалуйста, введите логин и пароль!", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             viewModel.login(login, pass)
         }
 
