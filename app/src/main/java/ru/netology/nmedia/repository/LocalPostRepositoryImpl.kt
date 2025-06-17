@@ -70,8 +70,6 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRe
                             Log.d("LocalPostRepository", "Файл ${file.name} успешно загружен, mediaId=${uploadedMedia.id}")
                         } else {
                             Log.w("LocalPostRepository", "Файл вложения не найден: ${originalAttachment.url}")
-                            // Можно, например, решить не отправлять пост с отсутствующим файлом?
-                            // или продолжать без вложения?
                         }
                     }
 

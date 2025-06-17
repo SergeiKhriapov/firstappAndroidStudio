@@ -47,4 +47,7 @@
     <string name="sign_in_account">Войти</string>
     <string name="login">Имя пользователя</string>
     <string name="password">Пароль</string>
+    <string name="create_account">Создать аккаунт</string>
+    <string name="name">Имя</string>
+    <string name="confirm_password">Подтвердите пароль</string>
 </resources>

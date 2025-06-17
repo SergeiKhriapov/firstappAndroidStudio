@@ -46,4 +46,7 @@
     <string name="sign_in_account">Sign In</string>
     <string name="login">Login</string>
     <string name="password">Password</string>
+    <string name="create_account">Create account</string>
+    <string name="name">Name</string>
+    <string name="confirm_password">Confirm password</string>
 </resources>

@@ -56,11 +56,18 @@ class PostViewModel(application: Application) :
         .map { it?.id != null && it.id != 0L }
         .asLiveData()*/
 
-    val isAuthenticated: StateFlow<Boolean> = appAuth.data
+    /*val isAuthenticated: StateFlow<Boolean> = appAuth.data
         .map { it?.id != null && it.id != 0L }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
+            false
+        )*/
+    val isAuthenticated: StateFlow<Boolean> = appAuth.data
+        .map { it?.id != null && it.id != 0L }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly, // <----
             false
         )
 
@@ -252,6 +259,7 @@ class PostViewModel(application: Application) :
         file.copyTo(internalFile, overwrite = true)
         return internalFile
     }
+
     val shouldShowAuthDialog = SingleLiveEvent<Unit>()
 
     fun likeById(id: Long) = viewModelScope.launch {
@@ -261,7 +269,8 @@ class PostViewModel(application: Application) :
         }
 
         try {
-            val post = repository.data.first().find { it.id == id || it.idLocal == id } ?: return@launch
+            val post =
+                repository.data.first().find { it.id == id || it.idLocal == id } ?: return@launch
             if (post.isSynced) {
                 if (post.likedByMe) {
                     repository.dislikeById(post.id)

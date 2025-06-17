@@ -1,6 +1,8 @@
 package ru.netology.nmedia.viewmodel
 
 import androidx.lifecycle.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.api.AuthApi
 import ru.netology.nmedia.auth.AppAuth
@@ -14,8 +16,11 @@ class SignInViewModel : ViewModel() {
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> = _errorMessage
 
-    private val _authSuccess = MutableLiveData(false)
-    val authSuccess: LiveData<Boolean> = _authSuccess
+    /* private val _authSuccess = MutableLiveData(false)
+     val authSuccess: LiveData<Boolean> = _authSuccess*/
+
+    private val _authSuccess = MutableStateFlow(false)
+    val registrationSuccess: StateFlow<Boolean> = _authSuccess
 
     fun login(login: String, pass: String) {
         viewModelScope.launch {
@@ -33,6 +38,10 @@ class SignInViewModel : ViewModel() {
                 _loading.value = false
             }
         }
+    }
+
+    fun resetAuthSuccess() {
+        _authSuccess.value = false
     }
 }
 

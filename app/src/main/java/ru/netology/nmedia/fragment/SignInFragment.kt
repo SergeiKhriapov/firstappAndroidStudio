@@ -9,6 +9,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import ru.netology.nmedia.databinding.FragmentSignInBinding
 import ru.netology.nmedia.viewmodel.SignInViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
+
 
 class SignInFragment : Fragment() {
 
@@ -22,9 +28,8 @@ class SignInFragment : Fragment() {
         binding.signInButton.setOnClickListener {
             val login = binding.loginEditText.text.toString()
             val pass = binding.passwordEditText.text.toString()
-
             if (login.isBlank() || pass.isBlank()) {
-                Toast.makeText(requireContext(), "Пожалуйста, введите логин и пароль", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Пожалуйста, введите логин и пароль!", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -35,9 +40,13 @@ class SignInFragment : Fragment() {
             binding.signInButton.isEnabled = !isLoading
         }
 
-        viewModel.authSuccess.observe(viewLifecycleOwner) { success ->
-            if (success) {
-                requireActivity().onBackPressed()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.registrationSuccess.collectLatest { success ->
+                if (success) {
+                    findNavController().popBackStack()
+                    viewModel.resetAuthSuccess()
+                    Snackbar.make(binding.root, "Вы успешно авторизовались!", Snackbar.LENGTH_SHORT).show()
+                }
             }
         }
 

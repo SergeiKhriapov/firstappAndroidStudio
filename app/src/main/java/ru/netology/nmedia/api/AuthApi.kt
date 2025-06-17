@@ -31,6 +31,14 @@ interface AuthApiService {
         @Field("login") login: String,
         @Field("pass") pass: String
     ): Token
+
+    @FormUrlEncoded
+    @POST("users/registration")
+    suspend fun register(
+        @Field("login") login: String,
+        @Field("pass") pass: String,
+        @Field("name") name: String
+    ): Token
 }
 
 object AuthApi {
@@ -38,3 +46,4 @@ object AuthApi {
         retrofit.create(AuthApiService::class.java)
     }
 }
+

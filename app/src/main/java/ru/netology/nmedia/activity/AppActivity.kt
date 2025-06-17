@@ -13,90 +13,104 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.fragment.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import ru.netology.nmedia.fragment.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.viewmodel.AuthViewModel
 
 class AppActivity : AppCompatActivity() {
+    private val viewModel by viewModels<AuthViewModel>()
+    private lateinit var navController: NavController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        navController = findNavController(R.id.fragment_container)
+
+        handleSendIntent(intent, binding)
+
+        requestNotificationsPermission()
+
+        addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.auth_menu, menu)
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                val isFeedFragment = navController.currentDestination?.id == R.id.feedFragment
+                val isAuthorized = viewModel.isAuthorized
+
+                menu.setGroupVisible(R.id.unauthorized, isFeedFragment && !isAuthorized)
+                menu.setGroupVisible(R.id.authorized, isFeedFragment && isAuthorized)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean = when (menuItem.itemId) {
+                R.id.singIn -> {
+                    navController.navigate(R.id.action_feedFragment_to_signInFragment)
+                    true
+                }
+
+                R.id.singUp -> {
+                    navController.navigate(R.id.action_feedFragment_to_signUnFragment)
+                    true
+                }
+
+                R.id.logout -> {
+                    AppAuth.getInstance().clearAuth()
+                    true
+                }
+
+                else -> false
+            }
+        }, this)
+
+        // Следим за сменой фрагментов, чтобы обновлять меню
+        navController.addOnDestinationChangedListener { _, _, _ ->
+            invalidateOptionsMenu()
+        }
+
+        // Подписка на authData, чтобы обновлять меню при входе/выходе
+        viewModel.authData
+            .flowWithLifecycle(lifecycle)
+            .onEach {
+                invalidateOptionsMenu()
+            }
+            .launchIn(lifecycleScope)
+    }
+
+    private fun handleSendIntent(intent: Intent?, binding: ActivityAppBinding) {
         intent?.let {
             if (it.action == Intent.ACTION_SEND) {
                 val text = it.getStringExtra(Intent.EXTRA_TEXT)
                 if (text.isNullOrBlank()) {
-                    Snackbar.make(
-                        binding.root,
-                        R.string.error_empty_content,
-                        Snackbar.LENGTH_INDEFINITE
-                    )
-                        .setAction(android.R.string.ok) {
-                            finish()
-                        }
+                    Snackbar.make(binding.root, R.string.error_empty_content, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(android.R.string.ok) { finish() }
                         .show()
                     return@let
                 }
 
-                findNavController(R.id.fragment_container).navigate(
+                navController.navigate(
                     R.id.action_feedFragment_to_newPostFragment,
-                    Bundle().apply {
-                        textArg = text
-                    }
+                    Bundle().apply { textArg = text }
                 )
             }
         }
-        requestNotificationsPermission()
-        addMenuProvider(
-            object : MenuProvider {
-                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                    menuInflater.inflate(R.menu.auth_menu, menu)
-
-
-                    val viewModel by viewModels<AuthViewModel>()
-                    viewModel.authData.flowWithLifecycle(lifecycle)
-                        .onEach {
-                            val isAuthorized = viewModel.isAuthorized
-                            menu.setGroupVisible(R.id.unauthorized, isAuthorized.not())
-                            menu.setGroupVisible(R.id.authorized, isAuthorized)
-                        }
-                        .launchIn(lifecycleScope)
-                }
-
-                override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
-                    when (menuItem.itemId) {
-                        R.id.singIn, R.id.singUp -> {
-                            findNavController(R.id.fragment_container).navigate(R.id.action_feedFragment_to_signInFragment)
-                            true
-                            /*AppAuth.getInstance().setAuth(5, "x-token")
-                            true*/
-                        }
-
-                        R.id.logout -> {
-                            AppAuth.getInstance().clearAuth()
-                            true
-                        }
-
-                        else -> false
-                    }
-            }
-        )
     }
 
     private fun requestNotificationsPermission() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return
-        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
         val permission = Manifest.permission.POST_NOTIFICATIONS
-        if (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
-            return
+        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(permission), 1)
         }
-        requestPermissions(arrayOf(permission), 1)
     }
 }
