@@ -1,6 +1,7 @@
 package ru.netology.nmedia.service
 
 import android.Manifest
+import android.R.id.content
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,12 +15,15 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import kotlin.random.Random
 
 class FCMService : FirebaseMessagingService() {
     private val keyAction = "action"
     private val keyContent = "content"
     private val channelId = "channelId"
+    private val gson = Gson()
+
     override fun onCreate() {
         super.onCreate()
         registerChannel()
@@ -28,35 +32,45 @@ class FCMService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         Log.d("FCM", token)
+        AppAuth.getInstance().sendPushTokenToServer(token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        message.data[keyAction]?.let { action ->
-            try {
-                when (Action.valueOf(action)) {
-                    Action.Like -> {
-                        val content = Gson().fromJson(message.data[keyContent], Like::class.java)
-                        if (content.userName.isNullOrBlank() || content.postAuthor.isNullOrBlank()) {
-                            Log.e("FCMService", "Ошибка данных с сервера")
-                            return
-                        }
-                        handleLike(content)
-                    }
+        message.data[keyContent]?.let {
+            val push = gson.fromJson(it, Push::class.java)
+            val myId = AppAuth.getInstance().data.value?.id
 
-                    Action.NewPost -> {
-                        val content = Gson().fromJson(message.data[keyContent], NewPost::class.java)
-                        if (content.userName.isNullOrBlank() || content.content.isNullOrBlank()) {
-                            Log.e("FCMService", "Ошибка данных с сервера")
-                            return
-                        }
-                        handleNewPost(content)
-                    }
+            when {
+                push.recipientId == null -> {
+                    showPushNotification(push.content)
                 }
-            } catch (e: IllegalArgumentException) {
-                handleUnknownAction(action)
+
+                push.recipientId == myId -> {
+                    showPushNotification(push.content)
+                }
+
+                push.recipientId == 0L && myId != null -> {
+                    AppAuth.getInstance().sendPushTokenToServer()
+                }
+
+                push.recipientId != myId -> {
+                    AppAuth.getInstance().sendPushTokenToServer()
+                }
             }
         }
     }
+    private fun showPushNotification(content: String) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Push-сообщение")
+            .setContentText(content)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(content))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        notify(notification)
+    }
+
 
     private fun registerChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -141,4 +155,9 @@ data class NewPost(
     val userName: String?,
     val postId: Long,
     val content: String?
+)
+
+data class Push(
+    val recipientId: Long?,
+    val content: String
 )

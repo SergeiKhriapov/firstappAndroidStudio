@@ -3,9 +3,16 @@ package ru.netology.nmedia.auth
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import ru.netology.nmedia.api.Api
+import ru.netology.nmedia.dto.PushToken
 
 class AppAuth private constructor(context: Context) {
 
@@ -20,6 +27,7 @@ class AppAuth private constructor(context: Context) {
         if (token != null && id != 0L) {
             _data.value = Token(id, token)
         }
+        sendPushTokenToServer()
     }
 
     /** Сохранить токен **/
@@ -31,12 +39,31 @@ class AppAuth private constructor(context: Context) {
             putString(TOKEN_KEY, token)
             putLong(ID_KEY, id)
         }
+        sendPushTokenToServer()
+    }
+
+    fun sendPushTokenToServer(token: String? = null) {
+        CoroutineScope(Dispatchers.Default).apply {
+            launch {
+                try {
+                    Api.retrofitService.sendPushToken(
+                        PushToken(
+                            token ?: FirebaseMessaging.getInstance().token.await()
+                        )
+                    )
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     @Synchronized
     fun clearAuth() {
         _data.value = null
         prefs.edit { clear() }
+       sendPushTokenToServer()
     }
 
     companion object {
@@ -46,7 +73,6 @@ class AppAuth private constructor(context: Context) {
         @Volatile
         private var INSTANCE: AppAuth? = null
 
-        /** Вызывает один раз при старте приложения */
         fun init(context: Context) {
             if (INSTANCE == null) {          // double‑checked locking
                 synchronized(this) {
