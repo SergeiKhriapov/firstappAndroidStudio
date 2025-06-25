@@ -49,8 +49,8 @@ class FCMService : FirebaseMessagingService() {
                     showPushNotification(push.content)
                 }
 
-                push.recipientId == 0L && myId != null -> {
-                    AppAuth.getInstance().sendPushTokenToServer()
+                push.recipientId == 0L && myId == null -> {
+                    showPushNotification(push.content)
                 }
 
                 push.recipientId != myId -> {
@@ -59,6 +59,7 @@ class FCMService : FirebaseMessagingService() {
             }
         }
     }
+
     private fun showPushNotification(content: String) {
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification)
