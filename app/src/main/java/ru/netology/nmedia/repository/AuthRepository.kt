@@ -14,7 +14,12 @@ class AuthRepository {
         return AuthApi.service.register(login, password, name)
     }
 
-    suspend fun registerUserWithPhoto(name: String, login: String, password: String, avatarFile: File): Token {
+    suspend fun registerUserWithPhoto(
+        name: String,
+        login: String,
+        password: String,
+        avatarFile: File
+    ): Token {
         val loginPart: RequestBody = login.toRequestBody("text/plain".toMediaType())
         val passPart: RequestBody = password.toRequestBody("text/plain".toMediaType())
         val namePart: RequestBody = name.toRequestBody("text/plain".toMediaType())

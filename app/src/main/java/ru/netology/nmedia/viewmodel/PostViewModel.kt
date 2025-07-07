@@ -3,35 +3,21 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import android.net.Uri
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.switchMap
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
+import ru.netology.nmedia.repository.FileRepository
 import ru.netology.nmedia.repository.LocalPostRepositoryImpl
-import ru.netology.nmedia.repository.MediaRepository
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
 
@@ -47,64 +33,44 @@ private val emptyPost = Post(
     likes = 0,
 )
 
-class PostViewModel(application: Application) :
-    AndroidViewModel(application) {
-    private val appAuth = AppAuth.getInstance() // Добавим явное поле
+class PostViewModel(
+    private val appAuth: AppAuth,
+    private val repository: PostRepository,
+    private val localRepository: LocalPostRepositoryImpl,
+    private val fileRepository: FileRepository
+) : ViewModel() {
 
-    /*val isAuthenticated: LiveData<Boolean> = appAuth
-        .data
-        .map { it?.id != null && it.id != 0L }
-        .asLiveData()*/
+    /*private val dependencies = DependencyContainer.getInstance()
+    private val appAuth = dependencies.appAuth
+    private val repository: PostRepository = dependencies.repository
+    private val localRepository: LocalPostRepositoryImpl = dependencies.localRepository*/
 
-    /*val isAuthenticated: StateFlow<Boolean> = appAuth.data
-        .map { it?.id != null && it.id != 0L }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            false
-        )*/
     val isAuthenticated: StateFlow<Boolean> = appAuth.data
         .map { it?.id != null && it.id != 0L }
-        .stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly, // <----
-            false
-        )
-
-
-    private val database = AppDb.getInstance(application)
-    private val mediaRepository = MediaRepository()
-    private val repository: PostRepository =
-        PostRepositoryImpl(database.postDao, mediaRepository)
-
-    private val localRepository: LocalPostRepositoryImpl =
-        LocalPostRepositoryImpl(database.localPostDao, mediaRepository)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _dataState = MutableLiveData<FeedModelState>()
-
     val dataState: LiveData<FeedModelState> get() = _dataState
+
     private val _syncError = MutableLiveData<Boolean>()
-
     val syncError: LiveData<Boolean> get() = _syncError
-    private val _likeError = SingleLiveEvent<Unit>()
 
+    private val _likeError = SingleLiveEvent<Unit>()
     val likeError: LiveData<Unit> get() = _likeError
+
     private val _postCreated = SingleLiveEvent<Unit>()
 
     val postCreated: LiveData<Unit> get() = _postCreated
     private val _edited = MutableLiveData<Post?>(emptyPost)
-
     val edited: LiveData<Post?> get() = _edited
+
+    private val _photo = MutableLiveData<PhotoModel?>(null)
+    val photo: LiveData<PhotoModel?> get() = _photo
+
+    private var draftContent: String? = null
 
     val hiddenSyncedCount: LiveData<Int> = repository.getHiddenSyncedCount()
         .asLiveData(Dispatchers.Default)
-
-    private val _photo = MutableLiveData<PhotoModel?>(null)
-    val photo: LiveData<PhotoModel?>
-        get() = _photo
-
-
-    private var draftContent: String? = null
 
     private val allPosts: StateFlow<List<Post>> = combine(
         repository.data,
@@ -113,36 +79,26 @@ class PostViewModel(application: Application) :
         val filteredSynced = synced.filter { it.isSynced }
         val filteredUnsynced = unsynced.filter { !it.isSynced }
         (filteredSynced + filteredUnsynced).sortedByDescending { it.published }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.Lazily,
-        emptyList()
-    )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val data: Flow<FeedModel> =
-        AppAuth.getInstance().data
-            .flatMapLatest { token ->
-                allPosts
-                    .map { posts ->
-                        FeedModel(
-                            posts
-                                .filter { !it.hidden }          // фильтруем «скрытые»
-                                .map { post ->                  // для каждого post
-                                    post.copy(                  // делаем копию
-                                        ownedByMe = token?.id == post.authorId
-                                    )
-                                }
-                        )
-                    }
-                    .catch { e -> e.printStackTrace() }
-            }
-
+    val data: Flow<FeedModel> = appAuth.data
+        .flatMapLatest { token ->
+            allPosts
+                .map { posts ->
+                    FeedModel(
+                        posts.filter { !it.hidden }
+                            .map { post -> post.copy(ownedByMe = token?.id == post.authorId) }
+                    )
+                }
+                .catch { e -> Log.e("PostViewModel", "Error in data flow", e) }
+        }
 
     val newerCount: Flow<Int> = data.flatMapLatest {
         repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
-            .catch { _dataState.postValue(FeedModelState(error(true))) }
+            .catch { _dataState.postValue(FeedModelState(error = true)) }
     }
 
+    val shouldShowAuthDialog = SingleLiveEvent<Unit>()
 
     init {
         loadPosts()
@@ -160,14 +116,13 @@ class PostViewModel(application: Application) :
         syncPosts()
         try {
             _dataState.value = FeedModelState(loading = true)
-            repository.getAll() // загружаем с сервера
+            repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             Log.e("PostViewModel", "Error loading posts", e)
             _dataState.value = FeedModelState(error = true)
         }
     }
-
 
     fun refreshPosts() = viewModelScope.launch {
         syncPosts()
@@ -208,7 +163,6 @@ class PostViewModel(application: Application) :
                         isSynced = false,
                         attachment = attachment
                     )
-
 
                     if (post.isSynced) {
                         file?.let {
@@ -252,18 +206,12 @@ class PostViewModel(application: Application) :
         }
     }
 
-    private fun saveToInternalStorage(file: File): File {
-        val context = getApplication<Application>().applicationContext
-        val internalDir = context.filesDir
-        val internalFile = File(internalDir, file.name)
-        file.copyTo(internalFile, overwrite = true)
-        return internalFile
-    }
+    private fun saveToInternalStorage(file: File): File =
+        fileRepository.saveToInternalStorage(file)
 
-    val shouldShowAuthDialog = SingleLiveEvent<Unit>()
 
     fun likeById(id: Long) = viewModelScope.launch {
-        if (isAuthenticated.value != true) {
+        if (!isAuthenticated.value) {
             shouldShowAuthDialog.postValue(Unit)
             return@launch
         }
@@ -286,10 +234,9 @@ class PostViewModel(application: Application) :
         }
     }
 
-
     fun removeById(id: Long) = viewModelScope.launch {
         try {
-            val post = allPosts.value?.find { it.id == id || it.idLocal == id } ?: return@launch
+            val post = allPosts.value.find { it.id == id || it.idLocal == id } ?: return@launch
             if (post.isSynced) {
                 repository.removeById(post.id)
             } else {
@@ -301,10 +248,8 @@ class PostViewModel(application: Application) :
         }
     }
 
-    fun unhideAllSyncedPosts() {
-        viewModelScope.launch {
-            repository.unhideAllSyncedPosts()
-        }
+    fun unhideAllSyncedPosts() = viewModelScope.launch {
+        repository.unhideAllSyncedPosts()
     }
 
     fun saveDraft(content: String) {

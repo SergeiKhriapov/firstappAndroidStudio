@@ -19,13 +19,23 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ru.netology.nmedia.R
-import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.fragment.NewPostFragment.Companion.textArg
+import ru.netology.nmedia.repository.FileRepositoryImpl
 import ru.netology.nmedia.viewmodel.AuthViewModel
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 
 class AppActivity : AppCompatActivity() {
-    private val viewModel by viewModels<AuthViewModel>()
+    private val viewModel: AuthViewModel by viewModels {
+        ViewModelFactory(
+            DependencyContainer.getInstance().appAuth,
+            DependencyContainer.getInstance().repository,
+            DependencyContainer.getInstance().localRepository,
+            FileRepositoryImpl(this)
+        )
+    }
+
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +74,7 @@ class AppActivity : AppCompatActivity() {
                 }
 
                 R.id.logout -> {
-                    AppAuth.getInstance().clearAuth()
+                    viewModel.logout()
                     true
                 }
 
@@ -77,7 +87,6 @@ class AppActivity : AppCompatActivity() {
             invalidateOptionsMenu()
         }
 
-        // Подписка на authData, чтобы обновлять меню при входе/выходе
         viewModel.authData
             .flowWithLifecycle(lifecycle)
             .onEach {
@@ -91,7 +100,11 @@ class AppActivity : AppCompatActivity() {
             if (it.action == Intent.ACTION_SEND) {
                 val text = it.getStringExtra(Intent.EXTRA_TEXT)
                 if (text.isNullOrBlank()) {
-                    Snackbar.make(binding.root, R.string.error_empty_content, Snackbar.LENGTH_INDEFINITE)
+                    Snackbar.make(
+                        binding.root,
+                        R.string.error_empty_content,
+                        Snackbar.LENGTH_INDEFINITE
+                    )
                         .setAction(android.R.string.ok) { finish() }
                         .show()
                     return@let

@@ -19,13 +19,24 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentFocusOnPostBinding
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.viewmodel.PostViewModel
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class FocusOnPostFragment : Fragment() {
 
-    private val viewModel: PostViewModel by activityViewModels()
+    private val viewModel: PostViewModel by activityViewModels(
+        factoryProducer = {
+            ViewModelFactory(
+                DependencyContainer.getInstance().appAuth,
+                DependencyContainer.getInstance().repository,
+                DependencyContainer.getInstance().localRepository,
+                ru.netology.nmedia.repository.FileRepositoryImpl(requireContext())
+            )
+        }
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,

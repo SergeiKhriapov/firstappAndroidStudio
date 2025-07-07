@@ -7,7 +7,7 @@ import ru.netology.nmedia.repository.FileRepository
 import ru.netology.nmedia.repository.LocalPostRepositoryImpl
 import ru.netology.nmedia.repository.PostRepository
 
-class PostViewModelFactory(
+class ViewModelFactory(
     private val appAuth: AppAuth,
     private val repository: PostRepository,
     private val localRepository: LocalPostRepositoryImpl,

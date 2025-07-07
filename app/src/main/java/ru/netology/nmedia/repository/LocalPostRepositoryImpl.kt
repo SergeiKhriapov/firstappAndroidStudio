@@ -4,7 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import ru.netology.nmedia.api.Api
+import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dao.LocalPostDao
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
@@ -12,7 +12,12 @@ import ru.netology.nmedia.entities.LocalPostEntity
 import ru.netology.nmedia.entities.toLocalPostDto
 import java.io.File
 
-class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRepository: MediaRepository) {
+class LocalPostRepositoryImpl(
+    private val dao: LocalPostDao,
+    private val mediaRepository: MediaRepository,
+    private val apiService: PostsApiService
+
+) {
     val data = dao.getAll()
         .map(List<LocalPostEntity>::toLocalPostDto)
         .flowOn(Dispatchers.Default)
@@ -74,9 +79,8 @@ class LocalPostRepositoryImpl(private val dao: LocalPostDao, private val mediaRe
                     }
 
                     Log.d("LocalPostRepository", "Отправляем пост idLocal=${localPost.idLocal} на сервер...")
-                    Api.retrofitService.save(postDto)
+                    apiService.save(postDto)
                     Log.d("LocalPostRepository", "Пост успешно сохранён на сервере: idLocal=${localPost.idLocal}")
-
                     dao.removeByIdLocal(localPost.idLocal)
                     Log.d("LocalPostRepository", "Локальный черновик удалён из БД: idLocal=${localPost.idLocal}")
 

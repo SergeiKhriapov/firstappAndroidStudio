@@ -4,14 +4,18 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import ru.netology.nmedia.api.Api
+import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entities.*
 import ru.netology.nmedia.error.ApiError
 import java.io.File
 
-class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: MediaRepository) : PostRepository {
+class PostRepositoryImpl(
+    private val dao: PostDao,
+    private val mediaRepository: MediaRepository,
+    private val apiService: PostsApiService
+) : PostRepository {
 
     override val data: Flow<List<Post>> = dao.getAll()
         .map(List<PostEntity>::toLocalPostDto)
@@ -20,7 +24,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
     override suspend fun getAll() {
         try {
             Log.d("PostRepositoryImpl", "Начало загрузки постов с сервера")
-            val response = Api.retrofitService.getAll()
+            val response = apiService.getAll()
             if (!response.isSuccessful) throw RuntimeException("Ошибка загрузки: ${response.code()}")
             val postsFromServer = response.body() ?: throw RuntimeException("Пустой ответ от сервера")
 
@@ -45,7 +49,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
     override suspend fun save(post: Post): Post {
         Log.d("PostRepositoryImpl", "Сохранение поста: $post")
         return try {
-            val response = Api.retrofitService.save(post)
+            val response = apiService.save(post)
             if (!response.isSuccessful) throw RuntimeException("Ошибка сохранения: ${response.code()}")
             val saved = response.body() ?: throw RuntimeException("Пустой ответ при сохранении")
             dao.insert(PostEntity.fromDto(saved.copy(isSynced = true)))
@@ -64,7 +68,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
         dao.insert(PostEntity.fromDto(updated))
 
         return try {
-            val response = Api.retrofitService.likeById(id)
+            val response = apiService.likeById(id)
             if (!response.isSuccessful) throw RuntimeException("Ошибка лайка: ${response.code()}")
             val likedPost = response.body() ?: throw RuntimeException("Пустой ответ при лайке")
             dao.insert(PostEntity.fromDto(likedPost))
@@ -84,7 +88,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
         dao.insert(PostEntity.fromDto(updated))
 
         return try {
-            val response = Api.retrofitService.dislikeById(id)
+            val response = apiService.dislikeById(id)
             if (!response.isSuccessful) throw RuntimeException("Ошибка дизлайка: ${response.code()}")
             val dislikedPost = response.body() ?: throw RuntimeException("Пустой ответ при дизлайке")
             dao.insert(PostEntity.fromDto(dislikedPost))
@@ -103,7 +107,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
         post?.let { dao.removeById(id) }
 
         try {
-            val response = Api.retrofitService.removeById(id)
+            val response = apiService.removeById(id)
             if (!response.isSuccessful) throw RuntimeException("Ошибка удаления: ${response.code()}")
             Log.d("PostRepositoryImpl", "Пост успешно удалён с сервера")
         } catch (e: Exception) {
@@ -117,7 +121,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
         Log.d("PostRepositoryImpl", "Старт потока новых постов новее id: $id")
         while (true) {
             delay(10_000)
-            val response = Api.retrofitService.getNewer(id)
+            val response = apiService.getNewer(id)
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val posts = response.body() ?: throw ApiError(response.code(), response.message())
             val hiddenPosts = posts.map { it.copy(hidden = true) }
@@ -149,7 +153,7 @@ class PostRepositoryImpl(private val dao: PostDao, private val mediaRepository: 
         Log.d("PostRepositoryImpl", "Сохранение поста с изображением: $post, файл: ${file.name}")
         return try {
             val media = mediaRepository.upload(file)
-            val response = Api.retrofitService.save(
+            val response = apiService.save(
                 post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
             )
             if (!response.isSuccessful) throw RuntimeException("Ошибка сохранения: ${response.code()}")

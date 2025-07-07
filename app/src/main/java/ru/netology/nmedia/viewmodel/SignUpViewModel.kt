@@ -1,4 +1,5 @@
 package ru.netology.nmedia.viewmodel
+
 import AuthRepository
 import android.content.Context
 import android.net.Uri
@@ -12,33 +13,29 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.util.FileUtils
 import java.io.File
 
-class SignUpViewModel : ViewModel() {
+class SignUpViewModel(
+    private val appAuth: AppAuth,
+) : ViewModel() {
     private val repository = AuthRepository()
-    private val appAuth = AppAuth.getInstance()
-
-    // Хранение состояния
     private val _registrationSuccess = MutableStateFlow(false)
     val registrationSuccess: StateFlow<Boolean> = _registrationSuccess.asStateFlow()
 
-    // Хранение фото
     private val _photo = MutableLiveData<PhotoModel?>(null)
     val photo: LiveData<PhotoModel?> = _photo
 
-    // Устанавливаем фото
     fun changePhoto(uri: Uri, file: File) {
         _photo.value = PhotoModel(uri, file)
     }
 
-    // Удаляем
     fun removePhoto() {
         _photo.value = null
     }
 
-    // Регистрация без фото
     fun register(name: String, login: String, password: String) {
         viewModelScope.launch {
             try {
@@ -51,7 +48,6 @@ class SignUpViewModel : ViewModel() {
         }
     }
 
-    // Регистрация с фото
     fun registerWithPhoto(
         name: String,
         login: String,

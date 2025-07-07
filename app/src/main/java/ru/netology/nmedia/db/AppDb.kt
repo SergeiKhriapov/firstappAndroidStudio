@@ -14,7 +14,7 @@ abstract class AppDb : RoomDatabase() {
     abstract val postDao: PostDao
     abstract val localPostDao: LocalPostDao
 
-    companion object {
+  /*  companion object {
         @Volatile
         private var instance: AppDb? = null
 
@@ -31,5 +31,5 @@ abstract class AppDb : RoomDatabase() {
             )
                 .build()
         }
-    }
+    }*/
 }

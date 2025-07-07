@@ -12,13 +12,23 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentEditPostBinding
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.util.focusAndShowKeyboard
 import ru.netology.nmedia.viewmodel.PostViewModel
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 
 class EditPostFragment : Fragment() {
 
-/*    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireActivity)*/
-    private val viewModel: PostViewModel by activityViewModels()
+    private val viewModel: PostViewModel by activityViewModels(
+        factoryProducer = {
+            ViewModelFactory(
+                DependencyContainer.getInstance().appAuth,
+                DependencyContainer.getInstance().repository,
+                DependencyContainer.getInstance().localRepository,
+                ru.netology.nmedia.repository.FileRepositoryImpl(requireContext())
+            )
+        }
+    )
 
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(

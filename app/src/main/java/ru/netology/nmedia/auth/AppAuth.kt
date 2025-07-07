@@ -6,15 +6,13 @@ import androidx.core.content.edit
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import ru.netology.nmedia.api.Api
 import ru.netology.nmedia.dto.PushToken
+import ru.netology.nmedia.di.DependencyContainer
 
-class AppAuth private constructor(context: Context) {
+class AppAuth(private val context: Context) {
 
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
@@ -30,7 +28,6 @@ class AppAuth private constructor(context: Context) {
         sendPushTokenToServer()
     }
 
-    /** Сохранить токен **/
     @Synchronized
     fun setAuth(id: Long, token: String) {
         Log.d("AppAuth", "setAuth called with id=$id, token=$token")
@@ -42,49 +39,27 @@ class AppAuth private constructor(context: Context) {
         sendPushTokenToServer()
     }
 
-    fun sendPushTokenToServer(token: String? = null) {
-        CoroutineScope(Dispatchers.Default).apply {
-            launch {
-                try {
-                    Api.retrofitService.sendPushToken(
-                        PushToken(
-                            token ?: FirebaseMessaging.getInstance().token.await()
-                        )
-                    )
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    @Synchronized
     fun clearAuth() {
         _data.value = null
         prefs.edit { clear() }
-       sendPushTokenToServer()
+        sendPushTokenToServer()
+    }
+
+    fun sendPushTokenToServer(token: String? = null) {
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                // берём apiService и pushToken из контейнера
+                val api = DependencyContainer.getInstance().apiService
+                val push = token ?: FirebaseMessaging.getInstance().token.await()
+                api.sendPushToken(PushToken(push))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     companion object {
         private const val TOKEN_KEY = "TOKEN_KEY"
         private const val ID_KEY = "ID_KEY"
-
-        @Volatile
-        private var INSTANCE: AppAuth? = null
-
-        fun init(context: Context) {
-            if (INSTANCE == null) {          // double‑checked locking
-                synchronized(this) {
-                    if (INSTANCE == null) {
-                        INSTANCE = AppAuth(context.applicationContext)
-                    }
-                }
-            }
-        }
-
-        /** Получить готовый объект */
-        fun getInstance(): AppAuth =
-            requireNotNull(INSTANCE) { "Need call init(context) before" }
     }
 }

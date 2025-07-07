@@ -18,12 +18,23 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.databinding.FragmentSignUpBinding
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.viewmodel.SignUpViewModel
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 import kotlin.getValue
 
 class SignUpFragment : Fragment() {
 
-    private val viewModel: SignUpViewModel by activityViewModels()
+    private val viewModel: SignUpViewModel by activityViewModels(
+        factoryProducer = {
+            ViewModelFactory(
+                DependencyContainer.getInstance().appAuth,
+                DependencyContainer.getInstance().repository,
+                DependencyContainer.getInstance().localRepository,
+                ru.netology.nmedia.repository.FileRepositoryImpl(requireContext())
+            )
+        }
+    )
     private var _binding: FragmentSignUpBinding? = null
     private val binding get() = _binding!!
 
@@ -100,7 +111,11 @@ class SignUpFragment : Fragment() {
                 if (success) {
                     findNavController().popBackStack()
                     viewModel.resetRegistrationSuccess()
-                    Snackbar.make(binding.root, "Регистрация прошла успешно!", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(
+                        binding.root,
+                        "Регистрация прошла успешно!",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
                     viewModel.removePhoto()
                 }
             }

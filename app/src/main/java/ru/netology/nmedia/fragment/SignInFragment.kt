@@ -14,11 +14,22 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import ru.netology.nmedia.di.DependencyContainer
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 
 
 class SignInFragment : Fragment() {
 
-    private val viewModel: SignInViewModel by activityViewModels()
+    private val viewModel: SignInViewModel by activityViewModels(
+        factoryProducer = {
+            ViewModelFactory(
+                DependencyContainer.getInstance().appAuth,
+                DependencyContainer.getInstance().repository,
+                DependencyContainer.getInstance().localRepository,
+                ru.netology.nmedia.repository.FileRepositoryImpl(requireContext())
+            )
+        }
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

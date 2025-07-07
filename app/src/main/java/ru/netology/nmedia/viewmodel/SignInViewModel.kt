@@ -6,18 +6,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.api.AuthApi
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.di.DependencyContainer
 import java.io.IOException
 
-class SignInViewModel : ViewModel() {
-
+class SignInViewModel(
+    private val appAuth: AppAuth
+    ) : ViewModel() {
     private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading
 
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> = _errorMessage
-
-    /* private val _authSuccess = MutableLiveData(false)
-     val authSuccess: LiveData<Boolean> = _authSuccess*/
 
     private val _authSuccess = MutableStateFlow(false)
     val registrationSuccess: StateFlow<Boolean> = _authSuccess
@@ -28,7 +27,7 @@ class SignInViewModel : ViewModel() {
             _errorMessage.value = null
             try {
                 val token = AuthApi.service.authenticate(login, pass)
-                AppAuth.getInstance().setAuth(token.id, token.token)
+                appAuth.setAuth(token.id, token.token)
                 _authSuccess.value = true
             } catch (e: IOException) {
                 _errorMessage.value = "Проблема с сетью: ${e.localizedMessage}"
@@ -44,4 +43,3 @@ class SignInViewModel : ViewModel() {
         _authSuccess.value = false
     }
 }
-
