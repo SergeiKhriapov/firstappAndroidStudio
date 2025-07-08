@@ -1,25 +1,27 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.ApiStatus
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
-import ru.netology.nmedia.repository.FileRepository
-import ru.netology.nmedia.repository.LocalPostRepositoryImpl
-import ru.netology.nmedia.repository.PostRepository
+import ru.netology.nmedia.repository.file.FileRepository
+import ru.netology.nmedia.repository.post.LocalPostRepositoryImpl
+import ru.netology.nmedia.repository.post.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
+import javax.inject.Inject
 
 private val emptyPost = Post(
     id = 0,
@@ -33,17 +35,13 @@ private val emptyPost = Post(
     likes = 0,
 )
 
-class PostViewModel(
+@HiltViewModel
+class PostViewModel @Inject constructor(
     private val appAuth: AppAuth,
     private val repository: PostRepository,
     private val localRepository: LocalPostRepositoryImpl,
     private val fileRepository: FileRepository
 ) : ViewModel() {
-
-    /*private val dependencies = DependencyContainer.getInstance()
-    private val appAuth = dependencies.appAuth
-    private val repository: PostRepository = dependencies.repository
-    private val localRepository: LocalPostRepositoryImpl = dependencies.localRepository*/
 
     val isAuthenticated: StateFlow<Boolean> = appAuth.data
         .map { it?.id != null && it.id != 0L }

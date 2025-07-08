@@ -16,25 +16,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.ActivityAppBinding
-import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.fragment.NewPostFragment.Companion.textArg
-import ru.netology.nmedia.repository.FileRepositoryImpl
 import ru.netology.nmedia.viewmodel.AuthViewModel
-import ru.netology.nmedia.viewmodel.ViewModelFactory
 
+@AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
-    private val viewModel: AuthViewModel by viewModels {
-        ViewModelFactory(
-            DependencyContainer.getInstance().appAuth,
-            DependencyContainer.getInstance().repository,
-            DependencyContainer.getInstance().localRepository,
-            FileRepositoryImpl(this)
-        )
-    }
+    private val viewModel: AuthViewModel by viewModels()
 
     private lateinit var navController: NavController
 

@@ -1,17 +1,20 @@
 package ru.netology.nmedia.viewmodel
 
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.api.AuthApi
+import ru.netology.nmedia.api.AuthApiService
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.di.DependencyContainer
 import java.io.IOException
+import javax.inject.Inject
 
-class SignInViewModel(
-    private val appAuth: AppAuth
-    ) : ViewModel() {
+@HiltViewModel
+class SignInViewModel @Inject constructor(
+    private val appAuth: AppAuth,
+    private val authApiService: AuthApiService
+) : ViewModel() {
     private val _loading = MutableLiveData(false)
     val loading: LiveData<Boolean> = _loading
 
@@ -26,7 +29,7 @@ class SignInViewModel(
             _loading.value = true
             _errorMessage.value = null
             try {
-                val token = AuthApi.service.authenticate(login, pass)
+                val token = authApiService.authenticate(login, pass)
                 appAuth.setAuth(token.id, token.token)
                 _authSuccess.value = true
             } catch (e: IOException) {

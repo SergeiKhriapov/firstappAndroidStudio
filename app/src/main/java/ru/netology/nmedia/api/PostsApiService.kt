@@ -9,8 +9,6 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.RegistrationResponse
 
-
-
 interface PostsApiService {
     @GET("posts")
     suspend fun getAll(): Response<List<Post>>

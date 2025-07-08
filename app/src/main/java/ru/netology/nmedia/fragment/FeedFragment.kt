@@ -21,26 +21,13 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
-import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
-import ru.netology.nmedia.viewmodel.ViewModelFactory
 import kotlin.getValue
-import ru.netology.nmedia.repository.FileRepository
 
 class FeedFragment : Fragment() {
-    private val dependencyContainer = DependencyContainer
 
-    private val viewModel: PostViewModel by activityViewModels(
-        factoryProducer = {
-            ViewModelFactory(
-                DependencyContainer.getInstance().appAuth,
-                DependencyContainer.getInstance().repository,
-                DependencyContainer.getInstance().localRepository,
-                ru.netology.nmedia.repository.FileRepositoryImpl(requireContext())
-            )
-        }
-    )
+    private val viewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?

@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'dagger.hilt.android.plugin' // Добавлено для Hilt
 
 android {
     namespace "ru.netology.nmedia"
@@ -69,6 +70,7 @@ dependencies {
     def coroutines_version = "1.9.0"
     def play_services_base_version = "18.5.0"
     def imagepicker_version = "2.1"
+    def hilt_version = "2.56.2" // Добавлено для Hilt
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "androidx.core:core-ktx:$core_version"
@@ -97,6 +99,11 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     implementation "com.google.android.gms:play-services-base:$play_services_base_version"
     implementation "com.github.dhaval2404:imagepicker:$imagepicker_version"
+
+    // Hilt зависимости
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    kapt "com.google.dagger:hilt-compiler:$hilt_version"
+
 
     testImplementation "junit:junit:$junit_version"
     androidTestImplementation "androidx.test.ext:junit:$ext_junit_version"

@@ -13,19 +13,21 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
-import ru.netology.nmedia.di.DependencyContainer
+import ru.netology.nmedia.auth.AppAuth
+import javax.inject.Inject
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
-    private val keyAction = "action"
+
     private val keyContent = "content"
     private val channelId = "channelId"
     private val gson = Gson()
 
-    private val appAuth by lazy {
-        DependencyContainer.getInstance().appAuth
-    }
+    @Inject
+    lateinit var appAuth: AppAuth
 
     override fun onCreate() {
         super.onCreate()
@@ -43,21 +45,10 @@ class FCMService : FirebaseMessagingService() {
             val myId = appAuth.data.value?.id
 
             when {
-                push.recipientId == null -> {
-                    showPushNotification(push.content)
-                }
-
-                push.recipientId == myId -> {
-                    showPushNotification(push.content)
-                }
-
-                push.recipientId == 0L && myId == null -> {
-                    showPushNotification(push.content)
-                }
-
-                push.recipientId != myId -> {
-                    appAuth.sendPushTokenToServer()
-                }
+                push.recipientId == null -> showPushNotification(push.content)
+                push.recipientId == myId -> showPushNotification(push.content)
+                push.recipientId == 0L && myId == null -> showPushNotification(push.content)
+                push.recipientId != myId -> appAuth.sendPushTokenToServer()
             }
         }
     }
@@ -87,58 +78,18 @@ class FCMService : FirebaseMessagingService() {
         }
     }
 
-    private fun handleNewPost(content: NewPost) {
-        val notificationText = getString(
-            R.string.notification_user_posted_new_post,
-            content.userName,
-            content.content?.take(100)
-        )
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(notificationText)
-            .setStyle(
-                NotificationCompat.BigTextStyle().bigText(
-                    content.content
-                )
-            )
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        notify(notification)
-    }
-
-    private fun handleLike(content: Like) {
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(
-                getString(
-                    R.string.notification_user_liked,
-                    content.userName,
-                    content.postAuthor,
-                )
-            )
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        notify(notification)
-    }
-
-    private fun handleUnknownAction(action: String) {
-        Log.e("FCMService", "Unknown action: $action")
-    }
-
     private fun notify(notification: Notification) {
         if (
             Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            checkSelfPermission(
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         ) {
             NotificationManagerCompat.from(this)
                 .notify(Random.nextInt(100_000), notification)
         }
     }
 }
+
+// Дополнительные классы и enum
 
 enum class Action {
     Like,

@@ -1,17 +1,22 @@
+package ru.netology.nmedia.repository.auth
+
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import ru.netology.nmedia.api.AuthApi
+import ru.netology.nmedia.api.AuthApiService
 import ru.netology.nmedia.auth.Token
 import java.io.File
+import javax.inject.Inject
 
-class AuthRepository {
+class AuthRepository @Inject constructor(
+    private val authApiService: AuthApiService
+) {
 
     suspend fun registerUser(name: String, login: String, password: String): Token {
-        return AuthApi.service.register(login, password, name)
+        return authApiService.register(login, password, name)
     }
 
     suspend fun registerUserWithPhoto(
@@ -29,6 +34,6 @@ class AuthRepository {
             avatarFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
         )
 
-        return AuthApi.service.registerWithPhoto(loginPart, passPart, namePart, filePart)
+        return authApiService.registerWithPhoto(loginPart, passPart, namePart, filePart)
     }
 }

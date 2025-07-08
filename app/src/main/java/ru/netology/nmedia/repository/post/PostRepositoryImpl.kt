@@ -1,17 +1,27 @@
-package ru.netology.nmedia.repository
+package ru.netology.nmedia.repository.post
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dao.PostDao
-import ru.netology.nmedia.dto.*
-import ru.netology.nmedia.entities.*
+import ru.netology.nmedia.dto.Attachment
+import ru.netology.nmedia.dto.AttachmentType
+import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.entities.PostEntity
+import ru.netology.nmedia.entities.toLocalPostDto
+import ru.netology.nmedia.entities.toPostEntity
 import ru.netology.nmedia.error.ApiError
+import ru.netology.nmedia.repository.media.MediaRepository
 import java.io.File
+import javax.inject.Inject
 
-class PostRepositoryImpl(
+class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val mediaRepository: MediaRepository,
     private val apiService: PostsApiService
@@ -34,7 +44,7 @@ class PostRepositoryImpl(
 
             val updatedEntities = postsFromServer.map { post ->
                 val existing = existingPosts[post.id]
-                PostEntity.fromDto(post.copy(isSynced = true)).copy(hidden = existing?.hidden ?: true)
+                PostEntity.Companion.fromDto(post.copy(isSynced = true)).copy(hidden = existing?.hidden ?: true)
             }
 
             dao.insert(updatedEntities)
@@ -52,7 +62,7 @@ class PostRepositoryImpl(
             val response = apiService.save(post)
             if (!response.isSuccessful) throw RuntimeException("Ошибка сохранения: ${response.code()}")
             val saved = response.body() ?: throw RuntimeException("Пустой ответ при сохранении")
-            dao.insert(PostEntity.fromDto(saved.copy(isSynced = true)))
+            dao.insert(PostEntity.Companion.fromDto(saved.copy(isSynced = true)))
             Log.d("PostRepositoryImpl", "Пост успешно сохранён МЕТОД БЕЗ ФАЙЛА: $saved")
             saved
         } catch (e: Exception) {
@@ -65,18 +75,18 @@ class PostRepositoryImpl(
         Log.d("PostRepositoryImpl", "Лайк поста с id: $id")
         val post = dao.getById(id)?.toDto() ?: throw Exception("Post not found")
         val updated = post.copy(likedByMe = true, likes = if (post.likes == 0) 1 else post.likes + 1)
-        dao.insert(PostEntity.fromDto(updated))
+        dao.insert(PostEntity.Companion.fromDto(updated))
 
         return try {
             val response = apiService.likeById(id)
             if (!response.isSuccessful) throw RuntimeException("Ошибка лайка: ${response.code()}")
             val likedPost = response.body() ?: throw RuntimeException("Пустой ответ при лайке")
-            dao.insert(PostEntity.fromDto(likedPost))
+            dao.insert(PostEntity.Companion.fromDto(likedPost))
             Log.d("PostRepositoryImpl", "Пост успешно лайкнут: $likedPost")
             likedPost
         } catch (e: Exception) {
             Log.e("PostRepositoryImpl", "Ошибка лайка, откат", e)
-            dao.insert(PostEntity.fromDto(post)) // rollback
+            dao.insert(PostEntity.Companion.fromDto(post)) // rollback
             throw e
         }
     }
@@ -85,18 +95,18 @@ class PostRepositoryImpl(
         Log.d("PostRepositoryImpl", "Дизлайк поста с id: $id")
         val post = dao.getById(id)?.toDto() ?: throw Exception("Post not found")
         val updated = post.copy(likedByMe = false, likes = if (post.likes == 1) 0 else post.likes - 1)
-        dao.insert(PostEntity.fromDto(updated))
+        dao.insert(PostEntity.Companion.fromDto(updated))
 
         return try {
             val response = apiService.dislikeById(id)
             if (!response.isSuccessful) throw RuntimeException("Ошибка дизлайка: ${response.code()}")
             val dislikedPost = response.body() ?: throw RuntimeException("Пустой ответ при дизлайке")
-            dao.insert(PostEntity.fromDto(dislikedPost))
+            dao.insert(PostEntity.Companion.fromDto(dislikedPost))
             Log.d("PostRepositoryImpl", "Пост успешно дизлайкнут: $dislikedPost")
             dislikedPost
         } catch (e: Exception) {
             Log.e("PostRepositoryImpl", "Ошибка дизлайка, откат", e)
-            dao.insert(PostEntity.fromDto(post)) // rollback
+            dao.insert(PostEntity.Companion.fromDto(post)) // rollback
             throw e
         }
     }
@@ -158,7 +168,7 @@ class PostRepositoryImpl(
             )
             if (!response.isSuccessful) throw RuntimeException("Ошибка сохранения: ${response.code()}")
             val saved = response.body() ?: throw RuntimeException("Пустой ответ при сохранении")
-            dao.insert(PostEntity.fromDto(saved.copy(isSynced = true)))
+            dao.insert(PostEntity.Companion.fromDto(saved.copy(isSynced = true)))
             Log.d("PostRepositoryImpl", "Пост с изображением успешно сохранён: $saved")
             saved
         } catch (e: Exception) {

@@ -1,6 +1,6 @@
 package ru.netology.nmedia.viewmodel
 
-import AuthRepository
+import ru.netology.nmedia.repository.auth.AuthRepository
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -8,20 +8,23 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.util.FileUtils
 import java.io.File
+import javax.inject.Inject
 
-class SignUpViewModel(
+
+@HiltViewModel
+class SignUpViewModel @Inject constructor(
     private val appAuth: AppAuth,
+    private val repository: AuthRepository
 ) : ViewModel() {
-    private val repository = AuthRepository()
     private val _registrationSuccess = MutableStateFlow(false)
     val registrationSuccess: StateFlow<Boolean> = _registrationSuccess.asStateFlow()
 

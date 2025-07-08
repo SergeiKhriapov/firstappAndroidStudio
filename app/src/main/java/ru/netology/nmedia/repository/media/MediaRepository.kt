@@ -1,4 +1,4 @@
-package ru.netology.nmedia.repository
+package ru.netology.nmedia.repository.media
 
 import android.util.Log
 import okhttp3.MultipartBody
@@ -6,8 +6,11 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dto.Media
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class MediaRepository(
+@Singleton
+class MediaRepository @Inject constructor(
     private val apiService: PostsApiService
 ) {
     suspend fun upload(file: File): Media {

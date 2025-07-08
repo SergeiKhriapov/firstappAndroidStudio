@@ -4,16 +4,24 @@ import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
 import com.google.firebase.messaging.FirebaseMessaging
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dto.PushToken
-import ru.netology.nmedia.di.DependencyContainer
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppAuth(private val context: Context) {
 
+@Singleton
+class AppAuth @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val postsApiService: PostsApiService,
+    private val firebaseMessaging: FirebaseMessaging
+) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
     private val _data = MutableStateFlow<Token?>(null)
@@ -48,10 +56,8 @@ class AppAuth(private val context: Context) {
     fun sendPushTokenToServer(token: String? = null) {
         CoroutineScope(Dispatchers.Default).launch {
             try {
-                // берём apiService и pushToken из контейнера
-                val api = DependencyContainer.getInstance().apiService
-                val push = token ?: FirebaseMessaging.getInstance().token.await()
-                api.sendPushToken(PushToken(push))
+                val push = token ?: firebaseMessaging.token.await()
+                postsApiService.sendPushToken(PushToken(push))
             } catch (e: Exception) {
                 e.printStackTrace()
             }
