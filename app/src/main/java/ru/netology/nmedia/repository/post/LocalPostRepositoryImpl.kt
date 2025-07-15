@@ -1,7 +1,6 @@
 package ru.netology.nmedia.repository.post
 
 import android.util.Log
-import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map

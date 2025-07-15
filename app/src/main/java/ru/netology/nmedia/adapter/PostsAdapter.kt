@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
@@ -14,25 +14,22 @@ import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.formatCount
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import kotlin.math.log
+import java.util.*
 
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener
-) : ListAdapter<Post, PostsAdapter.PostViewHolder>(PostDiffCallback) {
+) : PagingDataAdapter<Post, PostsAdapter.PostViewHolder>(PostDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        return PostViewHolder(
-            CardPostBinding.inflate(
-                LayoutInflater.from(parent.context), parent, false
-            ),
-            onInteractionListener
+        val binding = CardPostBinding.inflate(
+            LayoutInflater.from(parent.context), parent, false
         )
+        return PostViewHolder(binding, onInteractionListener)
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        // ✅ В PagingDataAdapter нужно обрабатывать null-объекты
+        getItem(position)?.let { holder.bind(it) }
     }
 
     class PostViewHolder(
@@ -43,27 +40,29 @@ class PostsAdapter(
         fun bind(post: Post) = with(binding) {
             content.text = post.content
             author.text = post.author
+
+            // ✅ Корректная обработка времени
             val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
-            val formattedDate =
-                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
-            published.text = formattedDate
+            published.text = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
+
             like.isChecked = post.likedByMe
-            like.setText(formatCount(post.likes))
-            share.setText(formatCount(post.shareCount))
-            views.setText(formatCount(post.viewsCount))
+            like.text = formatCount(post.likes)
+            share.text = formatCount(post.shareCount)
+            views.text = formatCount(post.viewsCount)
+
             menu.isVisible = post.ownedByMe
 
-            // Загрузка аватарки
+            // ✅ Загрузка аватарки
             val avatarUrl = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
-            Glide.with(binding.avatar)
+            Glide.with(avatar)
                 .load(avatarUrl)
                 .placeholder(R.drawable.hourglass_24_ic)
                 .error(R.drawable.ic_launcher_foreground)
                 .timeout(10_000)
                 .circleCrop()
-                .into(binding.avatar)
+                .into(avatar)
 
-            // Отображение изображения localPostEntaty и PostEntaty
+            // ✅ Обработка вложения (фото)
             if (post.attachment?.url != null) {
                 attachmentContainer.visibility = View.VISIBLE
                 val imageUrl = if (post.isSynced)
@@ -71,48 +70,38 @@ class PostsAdapter(
                 else
                     post.attachment.url
 
-                Glide.with(binding.attachmentContainer)
+                Glide.with(attachmentContainer)
                     .load(imageUrl)
                     .placeholder(R.drawable.hourglass_24_ic)
                     .error(R.drawable.error_ic)
                     .timeout(10_000)
-                    .into(binding.attachmentContainer)
+                    .into(attachmentContainer)
             } else {
                 attachmentContainer.visibility = View.GONE
             }
 
-
-            if (!post.video.isNullOrEmpty()) {
-                videoPreviewImage.visibility = View.VISIBLE
-                videoPreviewImage.setOnClickListener {
-                    onInteractionListener.onVideoClick(post)
-                }
-            } else {
-                videoPreviewImage.visibility = View.GONE
+            // ✅ Видео
+            videoPreviewImage.visibility = if (!post.video.isNullOrEmpty()) View.VISIBLE else View.GONE
+            videoPreviewImage.setOnClickListener {
+                onInteractionListener.onVideoClick(post)
             }
+
+            // ✅ Иконка синхронизации
             sync.visibility = if (post.isSynced) View.VISIBLE else View.GONE
 
-            like.setOnClickListener {
-                onInteractionListener.onLike(post)
-            }
-            share.setOnClickListener {
-                onInteractionListener.onShare(post)
-            }
-            views.setOnClickListener {
-                onInteractionListener.onView(post)
-            }
+            // ✅ Взаимодействие
+            like.setOnClickListener { onInteractionListener.onLike(post) }
+            share.setOnClickListener { onInteractionListener.onShare(post) }
+            views.setOnClickListener { onInteractionListener.onView(post) }
+            content.setOnClickListener { onInteractionListener.focusOnPost(post) }
+            attachmentContainer.setOnClickListener { onInteractionListener.focusOnAttachment(post) }
 
-            content.setOnClickListener {
-                onInteractionListener.focusOnPost(post)
-            }
-            attachmentContainer.setOnClickListener {
-                onInteractionListener.focusOnAttachment(post)
-            }
+            // ✅ Меню
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.menu_options)
-                    setOnMenuItemClickListener {
-                        when (it.itemId) {
+                    setOnMenuItemClickListener { item ->
+                        when (item.itemId) {
                             R.id.remove -> {
                                 onInteractionListener.onRemove(post)
                                 true
@@ -132,8 +121,11 @@ class PostsAdapter(
     }
 }
 
+// ✅ DiffUtil для сравнения постов
 object PostDiffCallback : DiffUtil.ItemCallback<Post>() {
-    override fun areItemsTheSame(oldItem: Post, newItem: Post) = oldItem.id == newItem.id
+    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean =
+        oldItem.id == newItem.id
 
-    override fun areContentsTheSame(oldItem: Post, newItem: Post) = oldItem == newItem
+    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean =
+        oldItem == newItem
 }

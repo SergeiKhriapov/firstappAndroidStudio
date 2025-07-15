@@ -1,6 +1,8 @@
 package ru.netology.nmedia.repository.post
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +20,7 @@ import ru.netology.nmedia.entities.toLocalPostDto
 import ru.netology.nmedia.entities.toPostEntity
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.repository.media.MediaRepository
+import ru.netology.nmedia.repository.paging.PostPagingSource
 import java.io.File
 import javax.inject.Inject
 
@@ -26,10 +29,18 @@ class PostRepositoryImpl @Inject constructor(
     private val mediaRepository: MediaRepository,
     private val apiService: PostsApiService
 ) : PostRepository {
-
-    override val data: Flow<List<Post>> = dao.getAll()
+    /*override val data: Flow<List<Post>> = dao.getAll()
         .map(List<PostEntity>::toLocalPostDto)
-        .flowOn(Dispatchers.Default)
+        .flowOn(Dispatchers.Default)*/
+
+    override val data = Pager(
+        config = PagingConfig(pageSize = 10, enablePlaceholders = false),
+        pagingSourceFactory = {
+            PostPagingSource(
+                apiService
+            )
+        }
+    ).flow
 
     override suspend fun getAll() {
         try {

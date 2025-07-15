@@ -11,15 +11,12 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
-import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentFocusOnPostBinding
+import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
+import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -27,122 +24,129 @@ class FocusOnPostFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
 
+    private var _binding: FragmentFocusOnPostBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val binding = FragmentFocusOnPostBinding.inflate(inflater, container, false)
+        _binding = FragmentFocusOnPostBinding.inflate(inflater, container, false)
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.data.collect { feedModel ->
-                    val posts = feedModel.posts
-                    val currentPost =
-                        posts.find { it.id == arguments?.getLong("idFocusPost") } ?: return@collect
+        val post = arguments?.getParcelable<Post>("post")
 
-                    binding.content.text = currentPost.content
-                    binding.author.text = currentPost.author
+        if (post == null) {
+            // Если пост не передан — просто уйдем назад или покажем ошибку
+            findNavController().navigateUp()
+            return binding.root
+        }
 
-                    val formattedDate = SimpleDateFormat(
-                        "yyyy-MM-dd HH:mm:ss",
-                        Locale.getDefault()
-                    ).format(currentPost.published * 1000)
-                    binding.published.text = formattedDate
+        // Заполняем UI сразу, без подписок
+        with(binding) {
+            content.text = post.content
+            author.text = post.author
 
-                    binding.like.text = currentPost.likes.toString()
-                    binding.share.text = currentPost.shareCount.toString()
-                    binding.views.text = currentPost.viewsCount.toString()
-                    binding.like.isChecked = currentPost.likedByMe
+            val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                .format(post.published * 1000)
+            published.text = formattedDate
 
-                    val url = "http://10.0.2.2:9999/avatars/${currentPost.authorAvatar}"
-                    Glide.with(binding.avatar)
-                        .load(url)
-                        .placeholder(R.drawable.hourglass_24_ic)
-                        .error(R.drawable.ic_launcher_foreground)
-                        .timeout(10_000)
-                        .circleCrop()
-                        .into(binding.avatar)
+            like.text = post.likes.toString()
+            share.text = post.shareCount.toString()
+            views.text = post.viewsCount.toString()
+            like.isChecked = post.likedByMe
 
-                    if (currentPost.attachment != null) {
-                        binding.attachmentContainer.visibility = View.VISIBLE
-                        val imageUrl = "http://10.0.2.2:9999/media/${currentPost.attachment.url}"
-                        Glide.with(binding.attachmentContainer)
-                            .load(imageUrl)
-                            .placeholder(R.drawable.hourglass_24_ic)
-                            .error { binding.attachmentContainer.isGone = true }
-                            .timeout(10_000)
-                            .into(binding.attachmentContainer)
-                    } else {
-                        binding.attachmentContainer.visibility = View.GONE
-                    }
+            val avatarUrl = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
+            Glide.with(avatar)
+                .load(avatarUrl)
+                .placeholder(R.drawable.hourglass_24_ic)
+                .error(R.drawable.ic_launcher_foreground)
+                .timeout(10_000)
+                .circleCrop()
+                .into(avatar)
 
-                    if (!currentPost.video.isNullOrEmpty()) {
-                        binding.videoPreviewImage.visibility = View.VISIBLE
-                    } else {
-                        binding.videoPreviewImage.visibility = View.GONE
-                    }
-                    binding.videoPreviewImage.setOnClickListener {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(currentPost.video))
-                        startActivity(intent)
-                    }
-                    binding.like.setOnClickListener {
-                        viewModel.likeById(currentPost.id)
-                    }
+            if (post.attachment != null) {
+                attachmentContainer.visibility = View.VISIBLE
+                val imageUrl = "http://10.0.2.2:9999/media/${post.attachment.url}"
+                Glide.with(attachmentContainer)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.hourglass_24_ic)
+                    .error { attachmentContainer.isGone = true }
+                    .timeout(10_000)
+                    .into(attachmentContainer)
+            } else {
+                attachmentContainer.visibility = View.GONE
+            }
 
-                    binding.share.setOnClickListener {
-                        viewModel.shareById(currentPost.id)
-                        val intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, currentPost.content)
-                            type = "text/plain"
-                        }
-                        val shareIntent =
-                            Intent.createChooser(intent, getString(R.string.chooser_share_post))
-                        startActivity(shareIntent)
-                    }
-
-                    binding.views.setOnClickListener {
-                        viewModel.viewById(currentPost.id)
-                    }
-
-                    binding.menu.isVisible = currentPost.ownedByMe
-
-                    if (currentPost.ownedByMe) {
-                        binding.menu.setOnClickListener {
-                            PopupMenu(it.context, it).apply {
-                                inflate(R.menu.menu_options)
-                                setOnMenuItemClickListener { menuItem ->
-                                    when (menuItem.itemId) {
-                                        R.id.remove -> {
-                                            viewModel.removeById(currentPost.id)
-                                            findNavController().navigateUp()
-                                            true
-                                        }
-                                        R.id.edit -> {
-                                            viewModel.startEditing(currentPost)
-                                            findNavController().navigate(
-                                                R.id.action_focusOnPostFragment_to_editPostFragment
-                                            )
-                                            true
-                                        }
-                                        else -> false
-                                    }
-                                }
-                            }.show()
-                        }
-                    } else {
-                        binding.menu.setOnClickListener(null)
-                    }
+            if (!post.video.isNullOrEmpty()) {
+                videoPreviewImage.visibility = View.VISIBLE
+                videoPreviewImage.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(post.video))
+                    startActivity(intent)
                 }
+            } else {
+                videoPreviewImage.visibility = View.GONE
+                videoPreviewImage.setOnClickListener(null)
+            }
+
+            like.setOnClickListener {
+                viewModel.likeById(post.id)
+            }
+
+            share.setOnClickListener {
+                viewModel.shareById(post.id)
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, post.content)
+                    type = "text/plain"
+                }
+                val shareIntent = Intent.createChooser(intent, getString(R.string.chooser_share_post))
+                startActivity(shareIntent)
+            }
+
+            views.setOnClickListener {
+                viewModel.viewById(post.id)
+            }
+
+            menu.isVisible = post.ownedByMe
+            if (post.ownedByMe) {
+                menu.setOnClickListener { view ->
+                    PopupMenu(view.context, view).apply {
+                        inflate(R.menu.menu_options)
+                        setOnMenuItemClickListener { menuItem ->
+                            when (menuItem.itemId) {
+                                R.id.remove -> {
+                                    viewModel.removeById(post.id)
+                                    findNavController().navigateUp()
+                                    true
+                                }
+                                R.id.edit -> {
+                                    viewModel.startEditing(post)
+                                    findNavController().navigate(
+                                        R.id.action_focusOnPostFragment_to_editPostFragment
+                                    )
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+                    }.show()
+                }
+            } else {
+                menu.setOnClickListener(null)
+            }
+
+            back.setOnClickListener {
+                viewModel.cancelEditing()
+                findNavController().navigateUp()
             }
         }
 
-        binding.back.setOnClickListener {
-            viewModel.cancelEditing()
-            findNavController().navigateUp()
-        }
-
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
