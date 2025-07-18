@@ -23,15 +23,13 @@ import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.AndroidUtils
-import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.util.focusAndShowKeyboard
 import ru.netology.nmedia.viewmodel.PostViewModel
-import kotlin.getValue
 
 class NewPostFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
-    private var isPosting = false  // !! флаг
+    private var isPosting = false  // флаг блокировки повторной отправки
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,8 +38,7 @@ class NewPostFragment : Fragment() {
     ): View {
         val binding = FragmentNewPostBinding.inflate(inflater, container, false)
 
-        val text = arguments?.textArg ?: viewModel.getDraft()
-        text?.let { binding.edit.setText(it) }
+        // Убрано восстановление текста из черновика
 
         binding.edit.post {
             binding.edit.setSelection(binding.edit.text.length)
@@ -49,7 +46,7 @@ class NewPostFragment : Fragment() {
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-            viewModel.saveDraft(binding.edit.text.toString())
+            // Убрано сохранение в черновик
             findNavController().navigateUp()
         }
 
@@ -80,18 +77,21 @@ class NewPostFragment : Fragment() {
             viewLifecycleOwner,
             Lifecycle.State.RESUMED
         )
+
         val photoLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
                 if (it.resultCode == ImagePicker.RESULT_ERROR) {
                     Toast.makeText(
                         requireContext(),
-                        R.string.photo_pick_error, Toast.LENGTH_SHORT
+                        R.string.photo_pick_error,
+                        Toast.LENGTH_SHORT
                     ).show()
                     return@registerForActivityResult
                 }
                 val result = it.data?.data ?: return@registerForActivityResult
                 viewModel.changePhoto(result, result.toFile())
             }
+
         viewModel.photo.observe(viewLifecycleOwner) { photo ->
             if (photo == null) {
                 binding.previewContainer.isGone = true
@@ -122,11 +122,10 @@ class NewPostFragment : Fragment() {
                 .createIntent {
                     photoLauncher.launch(it)
                 }
-
         }
 
         viewModel.postCreated.observe(viewLifecycleOwner) {
-            isPosting = false // !!!!!!!!!!!!!!!!! сбрасываем флаг
+            isPosting = false // сбрасываем флаг после успешного сохранения
             findNavController().navigateUp()
         }
 
@@ -134,8 +133,6 @@ class NewPostFragment : Fragment() {
     }
 
     companion object {
-        var Bundle.textArg by StringArg
         private const val MAX_PHOTO_SIZE_PIX = 2048
     }
 }
-

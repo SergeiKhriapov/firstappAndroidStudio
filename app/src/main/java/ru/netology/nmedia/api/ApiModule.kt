@@ -1,10 +1,8 @@
 package ru.netology.nmedia.di
 
-import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Provider
 import okhttp3.OkHttpClient
@@ -30,11 +28,6 @@ object ApiModule {
             level = HttpLoggingInterceptor.Level.BODY
         }
     }
-
-    /*@Provides
-    @Singleton
-    fun provideAppAuth(@ApplicationContext context: Context): AppAuth =
-        AppAuth(context)*/
 
     @Provides
     @Singleton

@@ -3,7 +3,6 @@ package ru.netology.nmedia.entities
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
 import kotlin.Long
 
@@ -26,8 +25,6 @@ data class PostEntity(
     @Embedded
     val attachment: AttachmentEmbedded? = null,
 
-
-    val isSynced: Boolean = true
 ) {
 
     companion object {
@@ -46,7 +43,6 @@ data class PostEntity(
             video = dto.video,
             hidden = hidden,
             attachment = dto.attachment?.let { AttachmentEmbedded.fromDto(it) },
-            isSynced = true
         )
     }
 
@@ -65,7 +61,6 @@ data class PostEntity(
         video = video,
         hidden = hidden,
         attachment = attachment?.toDto(),
-        isSynced = true
     )
 }
 

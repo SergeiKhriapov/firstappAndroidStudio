@@ -1,16 +1,15 @@
 package ru.netology.nmedia.repository.post
 
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.dto.Post
 import java.io.File
 
 interface PostRepository {
 
-    val data: Flow<List<Post>>
+    val data: Flow<PagingData<Post>>
 
     fun getNewer(id: Long): Flow<Int>
-
-    fun getHiddenSyncedCount(): Flow<Int>
 
     suspend fun getAll()
 
@@ -30,7 +29,6 @@ interface PostRepository {
 
     suspend fun update(post: Post)
 
-    suspend fun unhideAllSyncedPosts()
 
 
 }

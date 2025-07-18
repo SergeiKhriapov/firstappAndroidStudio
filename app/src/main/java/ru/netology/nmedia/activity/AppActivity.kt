@@ -21,13 +21,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.ActivityAppBinding
-import ru.netology.nmedia.fragment.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.viewmodel.AuthViewModel
 
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity() {
     private val viewModel: AuthViewModel by viewModels()
-
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +72,6 @@ class AppActivity : AppCompatActivity() {
             }
         }, this)
 
-        // Следим за сменой фрагментов, чтобы обновлять меню
         navController.addOnDestinationChangedListener { _, _, _ ->
             invalidateOptionsMenu()
         }
@@ -102,10 +99,7 @@ class AppActivity : AppCompatActivity() {
                     return@let
                 }
 
-                navController.navigate(
-                    R.id.action_feedFragment_to_newPostFragment,
-                    Bundle().apply { textArg = text }
-                )
+                navController.navigate(R.id.action_feedFragment_to_newPostFragment)
             }
         }
     }
