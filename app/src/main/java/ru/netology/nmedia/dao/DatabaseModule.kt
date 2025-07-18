@@ -26,7 +26,4 @@ object DatabaseModule {
 
     @Provides
     fun providePostDao(db: AppDb): PostDao = db.postDao()
-
-    @Provides
-    fun provideLocalPostDao(db: AppDb): LocalPostDao = db.localPostDao()
 }

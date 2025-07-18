@@ -36,7 +36,6 @@ class FeedFragment : Fragment() {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
         val adapter = PostsAdapter(object : OnInteractionListener {
-            /*override fun onLike(post: Post) = viewModel.likeById(post.id)*/
             override fun onLike(post: Post) {
                 viewModel.likeById(post.id)
             }
@@ -50,7 +49,6 @@ class FeedFragment : Fragment() {
                 startActivity(Intent.createChooser(intent, getString(R.string.chooser_share_post)))
             }
             override fun onView(post: Post) = viewModel.viewById(post.id)
-            /*override fun onRemove(post: Post) = viewModel.removeById(post.id)*/
             override fun onRemove(post: Post) {
                 viewModel.removeById(post.id)
             }
@@ -58,15 +56,12 @@ class FeedFragment : Fragment() {
                 viewModel.startEditing(post)
                 findNavController().navigate(R.id.action_feedFragment_to_editPostFragment)
             }
-
-
             override fun onVideoClick(post: Post) {
                 post.video?.takeIf { it.isNotBlank() }?.let {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it))
                     startActivity(intent)
                 }
             }
-
             override fun focusOnPost(post: Post) {
                 findNavController().navigate(
                     R.id.action_feedFragment_to_focusOnPostFragment,
@@ -95,7 +90,7 @@ class FeedFragment : Fragment() {
             }
         }
 
-        // Управление состоянием загрузки PagingData (прогресс и ошибки)
+        // Управление состоянием загрузки PagingData
         adapter.addLoadStateListener { loadState ->
             val isLoading = loadState.refresh is LoadState.Loading
             binding.progressLoadPosts.isVisible = isLoading
@@ -117,7 +112,7 @@ class FeedFragment : Fragment() {
             adapter.refresh()
         }
 
-        // Подписка на ошибки и прочее из ViewModel
+        // Подписка на ошибки из ViewModel
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progressLoadPosts.isVisible = state.loading
             binding.swipeRefreshLayout.isRefreshing = state.loading
@@ -131,7 +126,7 @@ class FeedFragment : Fragment() {
             }
         }
 
-        viewModel.syncError.observe(viewLifecycleOwner) { hasError ->
+ /*       viewModel.syncError.observe(viewLifecycleOwner) { hasError ->
             if (hasError) {
                 Snackbar.make(binding.root, R.string.error_synchronization, Snackbar.LENGTH_SHORT)
                     .setAction(R.string.retry) {
@@ -147,7 +142,7 @@ class FeedFragment : Fragment() {
                     viewModel.syncPosts()
                 }
                 .show()
-        }
+        }*/
 
         viewModel.shouldShowAuthDialog.observe(viewLifecycleOwner) {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
@@ -158,16 +153,6 @@ class FeedFragment : Fragment() {
                 }
                 .setNegativeButton("Отмена", null)
                 .show()
-        }
-
-        viewModel.hiddenSyncedCount.observe(viewLifecycleOwner) { count ->
-            binding.fabCounter.text = count.toString()
-            val visibility = if (count > 0) View.VISIBLE else View.GONE
-            binding.fabCounter.visibility = visibility
-            binding.hiddenVisible.visibility = visibility
-            binding.hiddenVisible.setOnClickListener {
-                viewModel.unhideAllSyncedPosts()
-            }
         }
 
         viewModel.postCreated.observe(viewLifecycleOwner) {

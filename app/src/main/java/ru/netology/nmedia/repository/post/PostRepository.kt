@@ -11,8 +11,6 @@ interface PostRepository {
 
     fun getNewer(id: Long): Flow<Int>
 
-    fun getHiddenSyncedCount(): Flow<Int>
-
     suspend fun getAll()
 
     suspend fun save(post: Post): Post
@@ -31,7 +29,6 @@ interface PostRepository {
 
     suspend fun update(post: Post)
 
-    suspend fun unhideAllSyncedPosts()
 
 
 }

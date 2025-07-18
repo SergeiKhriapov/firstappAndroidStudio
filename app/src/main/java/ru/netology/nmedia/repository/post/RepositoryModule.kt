@@ -13,8 +13,4 @@ interface RepositoryModule {
     @Singleton
     @Binds
     fun bindsPostRepository(impl: PostRepositoryImpl): PostRepository
-
-    @Singleton
-    @Binds
-    fun bindLocalPostRepository(impl: LocalPostRepositoryImpl): LocalPostRepository
 }

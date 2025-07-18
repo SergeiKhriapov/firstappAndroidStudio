@@ -7,7 +7,6 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
@@ -17,7 +16,6 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.file.FileRepository
-import ru.netology.nmedia.repository.post.LocalPostRepositoryImpl
 import ru.netology.nmedia.repository.post.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
@@ -39,20 +37,12 @@ private val emptyPost = Post(
 class PostViewModel @Inject constructor(
     private val appAuth: AppAuth,
     private val repository: PostRepository,
-    private val localRepository: LocalPostRepositoryImpl,
     private val fileRepository: FileRepository
 ) : ViewModel() {
-
-    private val emptyPost = Post(
-        id = 0, idLocal = 0, author = "", authorId = 0,
-        authorAvatar = "", content = "", published = 0,
-        likedByMe = false, likes = 0
-    )
 
     private val _dataState = MutableLiveData<FeedModelState>()
     val dataState: LiveData<FeedModelState> = _dataState
 
-    val syncError = MutableLiveData<Boolean>()
     val likeError = SingleLiveEvent<Unit>()
     val postCreated = SingleLiveEvent<Unit>()
     val shouldShowAuthDialog = SingleLiveEvent<Unit>()
@@ -63,37 +53,24 @@ class PostViewModel @Inject constructor(
     private val _photo = MutableLiveData<PhotoModel?>(null)
     val photo: LiveData<PhotoModel?> = _photo
 
-    private var draftContent: String? = null
-
-    val hiddenSyncedCount: LiveData<Int> =
-        repository.getHiddenSyncedCount().asLiveData(Dispatchers.Default)
-
     val isAuthenticated: StateFlow<Boolean> = appAuth.data
         .map { it?.id != null && it.id != 0L }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    // Основной поток PagingData с объединением локальных unsynced постов
-    val data: Flow<PagingData<Post>> = merge(
-        localRepository.data.map { unsyncedPosts ->
-            PagingData.from(
-                unsyncedPosts.filter { !it.isSynced }
-                    .sortedByDescending { it.published }
-            )
-        },
-        repository.data
-    )
-        .map { pagingData ->
-            val currentUserId = appAuth.data.value?.id
-            pagingData.map { post -> post.copy(ownedByMe = currentUserId == post.authorId) }
+    val data: Flow<PagingData<Post>> = appAuth.data
+        .flatMapLatest { auth ->
+            val currentUserId = auth?.id
+            repository.data.map { pagingData ->
+                pagingData.map { post ->
+                    post.copy(ownedByMe = currentUserId == post.authorId)
+                }
+            }
         }
         .cachedIn(viewModelScope)
 
+
     val newerCount: Flow<Int> = repository.getNewer(0)
         .catch { _dataState.postValue(FeedModelState(error = true)) }
-
-    init {
-        loadPosts()
-    }
 
     fun changePhoto(uri: Uri, file: File) {
         _photo.value = PhotoModel(uri, file)
@@ -103,8 +80,15 @@ class PostViewModel @Inject constructor(
         _photo.value = null
     }
 
+    init {
+        viewModelScope.launch {
+            appAuth.data.collect {
+                loadPosts()
+            }
+        }
+    }
+
     fun loadPosts() = viewModelScope.launch {
-        syncPosts()
         try {
             _dataState.value = FeedModelState(loading = true)
             repository.getAll()
@@ -116,7 +100,6 @@ class PostViewModel @Inject constructor(
     }
 
     fun refreshPosts() = viewModelScope.launch {
-        syncPosts()
         try {
             _dataState.value = FeedModelState(refreshing = true)
             repository.getAll()
@@ -125,11 +108,6 @@ class PostViewModel @Inject constructor(
             Log.e("PostViewModel", "Error refreshing posts", e)
             _dataState.value = FeedModelState(error = true)
         }
-    }
-
-    fun syncPosts() = viewModelScope.launch {
-        val hasError = localRepository.syncUnsyncedPosts()
-        syncError.value = hasError
     }
 
     fun saveContent(content: String) {
@@ -148,38 +126,13 @@ class PostViewModel @Inject constructor(
                     val updatedPost = post.copy(
                         content = content,
                         published = System.currentTimeMillis(),
-                        isSynced = false,
                         attachment = attachment
                     )
 
-                    when {
-                        post.isSynced -> {
-                            file?.let {
-                                repository.save(updatedPost.copy(isSynced = true), it)
-                            } ?: repository.save(updatedPost)
-                            localRepository.update(updatedPost.copy(isSynced = true))
-                        }
-
-                        post.idLocal != 0L -> {
-                            localRepository.update(updatedPost)
-                            try {
-                                file?.let {
-                                    repository.save(updatedPost.copy(isSynced = true), it)
-                                } ?: repository.save(updatedPost)
-                                localRepository.removeById(updatedPost.idLocal)
-                            } catch (_: Exception) {}
-                        }
-
-                        else -> {
-                            val idLocal = localRepository.save(updatedPost)
-                            val newPost = updatedPost.copy(idLocal = idLocal)
-                            try {
-                                file?.let {
-                                    repository.save(newPost.copy(isSynced = true), it)
-                                } ?: repository.save(newPost.copy(isSynced = true))
-                                localRepository.removeById(newPost.idLocal)
-                            } catch (_: Exception) {}
-                        }
+                    if (file != null) {
+                        repository.save(updatedPost, file)
+                    } else {
+                        repository.save(updatedPost)
                     }
 
                     postCreated.value = Unit
@@ -216,18 +169,12 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun unhideAllSyncedPosts() = viewModelScope.launch {
+    /*fun unhideAllSyncedPosts() = viewModelScope.launch {
         repository.unhideAllSyncedPosts()
-    }
+    }*/
 
     private fun saveToInternalStorage(file: File): File =
         fileRepository.saveToInternalStorage(file)
-
-    fun saveDraft(content: String) {
-        draftContent = content
-    }
-
-    fun getDraft(): String? = draftContent
 
     fun startEditing(post: Post) {
         _edited.value = post

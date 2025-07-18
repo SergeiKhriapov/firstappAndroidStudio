@@ -28,7 +28,8 @@ class PostsAdapter(
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        // ✅ В PagingDataAdapter нужно обрабатывать null-объекты
+
+        // В PagingDataAdapter нужно обрабатывать null-объекты
         getItem(position)?.let { holder.bind(it) }
     }
 
@@ -41,8 +42,7 @@ class PostsAdapter(
             content.text = post.content
             author.text = post.author
 
-            // ✅ Корректная обработка времени
-            val date = if (post.isSynced) Date(post.published * 1000) else Date(post.published)
+            val date = post.published * 1000
             published.text = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
 
             like.isChecked = post.likedByMe
@@ -65,10 +65,7 @@ class PostsAdapter(
             // ✅ Обработка вложения (фото)
             if (post.attachment?.url != null) {
                 attachmentContainer.visibility = View.VISIBLE
-                val imageUrl = if (post.isSynced)
-                    "http://10.0.2.2:9999/media/${post.attachment.url}"
-                else
-                    post.attachment.url
+                val imageUrl = post.attachment.url
 
                 Glide.with(attachmentContainer)
                     .load(imageUrl)
@@ -80,16 +77,16 @@ class PostsAdapter(
                 attachmentContainer.visibility = View.GONE
             }
 
-            // ✅ Видео
             videoPreviewImage.visibility = if (!post.video.isNullOrEmpty()) View.VISIBLE else View.GONE
             videoPreviewImage.setOnClickListener {
                 onInteractionListener.onVideoClick(post)
             }
 
             // ✅ Иконка синхронизации
+/*
             sync.visibility = if (post.isSynced) View.VISIBLE else View.GONE
+*/
 
-            // ✅ Взаимодействие
             like.setOnClickListener { onInteractionListener.onLike(post) }
             share.setOnClickListener { onInteractionListener.onShare(post) }
             views.setOnClickListener { onInteractionListener.onView(post) }
@@ -121,7 +118,6 @@ class PostsAdapter(
     }
 }
 
-// ✅ DiffUtil для сравнения постов
 object PostDiffCallback : DiffUtil.ItemCallback<Post>() {
     override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean =
         oldItem.id == newItem.id

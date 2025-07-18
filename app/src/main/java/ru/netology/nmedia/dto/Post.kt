@@ -18,7 +18,6 @@ data class Post(
     val viewsCount: Int = 0,
     val video: String? = null,
     val attachment: Attachment? = null,  // Attachment должен быть Parcelable
-    val isSynced: Boolean = false,
     val hidden: Boolean = false,
     val ownedByMe: Boolean = false
 ) : Parcelable
