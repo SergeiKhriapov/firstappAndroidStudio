@@ -69,8 +69,6 @@ class PostViewModel @Inject constructor(
         .cachedIn(viewModelScope)
 
 
-    val newerCount: Flow<Int> = repository.getNewer(0)
-        .catch { _dataState.postValue(FeedModelState(error = true)) }
 
     fun changePhoto(uri: Uri, file: File) {
         _photo.value = PhotoModel(uri, file)
@@ -83,30 +81,7 @@ class PostViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             appAuth.data.collect {
-                loadPosts()
             }
-        }
-    }
-
-    fun loadPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(loading = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Error loading posts", e)
-            _dataState.value = FeedModelState(error = true)
-        }
-    }
-
-    fun refreshPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(refreshing = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            Log.e("PostViewModel", "Error refreshing posts", e)
-            _dataState.value = FeedModelState(error = true)
         }
     }
 
@@ -168,10 +143,6 @@ class PostViewModel @Inject constructor(
             _dataState.postValue(FeedModelState(error = true))
         }
     }
-
-    /*fun unhideAllSyncedPosts() = viewModelScope.launch {
-        repository.unhideAllSyncedPosts()
-    }*/
 
     private fun saveToInternalStorage(file: File): File =
         fileRepository.saveToInternalStorage(file)

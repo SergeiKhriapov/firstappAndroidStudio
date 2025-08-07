@@ -11,6 +11,9 @@ import ru.netology.nmedia.entities.PostEntity
 @Dao
 interface PostDao {
 
+    @Query("SELECT COUNT(*) == 0 FROM PostEntity")
+    suspend fun isEmpty(): Boolean
+
     @Query("SELECT * FROM PostEntity ORDER BY id DESC")
     fun getAll(): Flow<List<PostEntity>>
 

@@ -27,69 +27,74 @@ class PostRemoteMediator(
         state: PagingState<Int, PostEntity>
     ): MediatorResult {
         try {
-            if (loadType == LoadType.PREPEND) {
-                // Отключаем автоматический prepend
-                return MediatorResult.Success(endOfPaginationReached = true)
-            }
-
             val response = when (loadType) {
+                LoadType.PREPEND -> {
+                    // Отключаем автоматический PREPEND
+                    return MediatorResult.Success(endOfPaginationReached = true)
+                }
+
                 LoadType.REFRESH -> {
-                    // ВСЕГДА загружаем последние посты, не зависимо от ключей
-                    apiService.getLatest(state.config.pageSize)
+                    val maxId = postRemoteKeyDao.max()
+                    if (maxId == null) {
+                        apiService.getLatest(state.config.pageSize)
+                    } else {
+                        apiService.getAfter(maxId, state.config.pageSize)
+                    }
                 }
 
                 LoadType.APPEND -> {
-                    val minKey = postRemoteKeyDao.min() ?: return MediatorResult.Success(true)
-                    apiService.getBefore(minKey, state.config.pageSize)
+                    val minId = postRemoteKeyDao.min() ?: return MediatorResult.Success(true)
+                    apiService.getBefore(minId, state.config.pageSize)
                 }
-
-                else -> throw IllegalStateException("Unsupported loadType: $loadType")
             }
 
             if (!response.isSuccessful) throw HttpException(response)
 
             val data = response.body().orEmpty()
-
-            if (loadType == LoadType.REFRESH && data.isEmpty()) {
-                // Если при REFRESH сервер ничего не вернул, считаем, что данные актуальны, но не error
-                return MediatorResult.Success(endOfPaginationReached = false)
-            }
-
-            if (loadType == LoadType.APPEND && data.isEmpty()) {
+            if (data.isEmpty()) {
                 return MediatorResult.Success(endOfPaginationReached = true)
             }
 
             appDb.withTransaction {
+
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        // не очищаем, обновляем или добавляем новые
+                        // Не очищаем базу, добавляем новые посты
                         postDao.insert(data.map(PostEntity::fromDto))
 
-                        // Обновляем ключи
-                        val maxId = data.maxOfOrNull { it.id } ?: 0L
-                        val minId = data.minOfOrNull { it.id } ?: 0L
-
+                        // Обновить ключ AFTER
                         postRemoteKeyDao.insert(
-                            listOf(
-                                PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.AFTER, maxId),
-                                PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, minId)
+                            PostRemoteKeyEntity(
+                                PostRemoteKeyEntity.KeyType.AFTER,
+                                data.first().id
                             )
                         )
+
+                        // Если пустая БД установить
+                        if (postDao.isEmpty()) {
+                            postRemoteKeyDao.insert(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.BEFORE,
+                                    data.last().id
+                                )
+                            )
+                        }
+
                     }
 
                     LoadType.APPEND -> {
                         postDao.insert(data.map(PostEntity::fromDto))
-
-                        // Обновляем ключ BEFORE min ID снизу
+                        // обновляем ключ BEFORE
                         postRemoteKeyDao.insert(
                             PostRemoteKeyEntity(
                                 PostRemoteKeyEntity.KeyType.BEFORE,
-                                data.minOf { it.id }
+                                data.last().id
                             )
                         )
                     }
 
                     else -> {}
+
                 }
             }
 

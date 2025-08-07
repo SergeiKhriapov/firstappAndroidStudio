@@ -112,38 +112,6 @@ class FeedFragment : Fragment() {
             adapter.refresh()
         }
 
-        // Подписка на ошибки из ViewModel
-        viewModel.dataState.observe(viewLifecycleOwner) { state ->
-            binding.progressLoadPosts.isVisible = state.loading
-            binding.swipeRefreshLayout.isRefreshing = state.loading
-
-            if (state.error) {
-                Snackbar.make(binding.root, R.string.error_text, Snackbar.LENGTH_SHORT)
-                    .setAction(R.string.retry) {
-                        viewModel.loadPosts()
-                    }
-                    .show()
-            }
-        }
-
- /*       viewModel.syncError.observe(viewLifecycleOwner) { hasError ->
-            if (hasError) {
-                Snackbar.make(binding.root, R.string.error_synchronization, Snackbar.LENGTH_SHORT)
-                    .setAction(R.string.retry) {
-                        viewModel.syncPosts()
-                    }
-                    .show()
-            }
-        }
-
-        viewModel.likeError.observe(viewLifecycleOwner) {
-            Snackbar.make(binding.root, R.string.error_local_like, Snackbar.LENGTH_SHORT)
-                .setAction(R.string.retry) {
-                    viewModel.syncPosts()
-                }
-                .show()
-        }*/
-
         viewModel.shouldShowAuthDialog.observe(viewLifecycleOwner) {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("Авторизация")
@@ -157,7 +125,7 @@ class FeedFragment : Fragment() {
 
         viewModel.postCreated.observe(viewLifecycleOwner) {
             Log.d("FeedFragment", "Пост создан, перезагружаем посты")
-            viewModel.loadPosts()
+            adapter.refresh()
             findNavController().navigateUp()
         }
 
