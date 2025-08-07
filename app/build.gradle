@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'kotlin-parcelize'        // <-- вот сюда добавь
+apply plugin: 'kotlin-parcelize'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'dagger.hilt.android.plugin' // Добавлено для Hilt
 
@@ -101,6 +101,7 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     implementation "com.google.android.gms:play-services-base:$play_services_base_version"
     implementation "com.github.dhaval2404:imagepicker:$imagepicker_version"
+    implementation("androidx.room:room-paging:2.7.0-rc01")
 
     // Paging зависимости
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"

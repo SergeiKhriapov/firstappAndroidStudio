@@ -43,7 +43,8 @@ class PostsAdapter(
             author.text = post.author
 
             val date = post.published * 1000
-            published.text = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
+            published.text =
+                SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
 
             like.isChecked = post.likedByMe
             like.text = formatCount(post.likes)
@@ -52,7 +53,7 @@ class PostsAdapter(
 
             menu.isVisible = post.ownedByMe
 
-            // ✅ Загрузка аватарки
+            // Загрузка аватарки
             val avatarUrl = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
             Glide.with(avatar)
                 .load(avatarUrl)
@@ -62,10 +63,15 @@ class PostsAdapter(
                 .circleCrop()
                 .into(avatar)
 
-            // ✅ Обработка вложения (фото)
+            // Обработка вложения (фото)
             if (post.attachment?.url != null) {
                 attachmentContainer.visibility = View.VISIBLE
-                val imageUrl = post.attachment.url
+                /*
+                                val imageUrl = post.attachment.url
+                */
+                val imageUrl =
+                    "http://10.0.2.2:9999/media/${post.attachment.url}" // post.attachment.url хранит только имя файла)
+
 
                 Glide.with(attachmentContainer)
                     .load(imageUrl)
@@ -77,15 +83,11 @@ class PostsAdapter(
                 attachmentContainer.visibility = View.GONE
             }
 
-            videoPreviewImage.visibility = if (!post.video.isNullOrEmpty()) View.VISIBLE else View.GONE
+            videoPreviewImage.visibility =
+                if (!post.video.isNullOrEmpty()) View.VISIBLE else View.GONE
             videoPreviewImage.setOnClickListener {
                 onInteractionListener.onVideoClick(post)
             }
-
-            // ✅ Иконка синхронизации
-/*
-            sync.visibility = if (post.isSynced) View.VISIBLE else View.GONE
-*/
 
             like.setOnClickListener { onInteractionListener.onLike(post) }
             share.setOnClickListener { onInteractionListener.onShare(post) }
@@ -93,7 +95,6 @@ class PostsAdapter(
             content.setOnClickListener { onInteractionListener.focusOnPost(post) }
             attachmentContainer.setOnClickListener { onInteractionListener.focusOnAttachment(post) }
 
-            // ✅ Меню
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.menu_options)
