@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
@@ -57,17 +58,21 @@ class PostViewModel @Inject constructor(
         .map { it?.id != null && it.id != 0L }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val data: Flow<PagingData<Post>> = appAuth.data
+    val data: Flow<PagingData<FeedItem>> = appAuth.data
         .flatMapLatest { auth ->
             val currentUserId = auth?.id
             repository.data.map { pagingData ->
                 pagingData.map { post ->
-                    post.copy(ownedByMe = currentUserId == post.authorId)
+                    if (post is Post) {
+                        post.copy(ownedByMe = currentUserId == post.authorId)
+                    } else {
+                        post
+                    }
+
                 }
             }
         }
         .cachedIn(viewModelScope)
-
 
 
     fun changePhoto(uri: Uri, file: File) {

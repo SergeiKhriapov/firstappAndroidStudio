@@ -1,20 +1,14 @@
 package ru.netology.nmedia.repository.post
 
 import android.util.Log
-import androidx.paging.ExperimentalPagingApi
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
+import androidx.paging.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import ru.netology.nmedia.api.PostsApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.dto.Attachment
-import ru.netology.nmedia.dto.AttachmentType
-import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entities.PostEntity
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.repository.media.MediaRepository
@@ -22,7 +16,7 @@ import ru.netology.nmedia.repository.paging.PostRemoteMediator
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
-
+import kotlin.random.Random
 
 @Singleton
 class PostRepositoryImpl @Inject constructor(
@@ -32,8 +26,9 @@ class PostRepositoryImpl @Inject constructor(
     val postRemoteKeyDao: PostRemoteKeyDao,
     val appDb: AppDb,
 ) : PostRepository {
+
     @OptIn(ExperimentalPagingApi::class)
-    override val data: Flow<PagingData<Post>> = Pager(
+    override val data: Flow<PagingData<FeedItem>> = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = false),
         pagingSourceFactory = { dao.getPagingSource() },
         remoteMediator = PostRemoteMediator(
@@ -42,8 +37,48 @@ class PostRepositoryImpl @Inject constructor(
             appDb = appDb,
             postRemoteKeyDao = postRemoteKeyDao
         )
-    ).flow
-        .map { it.map(PostEntity::toDto) }
+    ).flow.map { pagingData ->
+        pagingData
+            .map<PostEntity, FeedItem> { it.toDto() }
+            .insertSeparators<FeedItem, FeedItem> { before, after ->
+
+                fun getTitle(post: Post): String {
+                    val now = System.currentTimeMillis()
+                    val publishedMillis = post.published * 1000
+                    val diff = now - publishedMillis
+                    val oneDay = 24 * 60 * 60 * 1000L
+                    val twoDays = 2 * oneDay
+
+                    return when {
+                        diff < oneDay -> SeparatorTitles.TODAY
+                        diff < twoDays -> SeparatorTitles.YESTERDAY
+                        else -> SeparatorTitles.LAST_WEEK
+                    }
+                }
+
+                // Сначала сепаратор по дате
+                if (after is Post && (before == null || before !is Post)) {
+                    return@insertSeparators Separator(-Random.nextLong(), getTitle(after))
+                }
+
+                if (before is Post && after is Post) {
+                    val beforeTitle = getTitle(before)
+                    val afterTitle = getTitle(after)
+                    if (beforeTitle != afterTitle) {
+                        return@insertSeparators Separator(-Random.nextLong(), afterTitle)
+                    }
+                }
+
+                // Вставка рекламы каждые 5 постов
+                if (before is Post && before.id % 5 == 0L) {
+                    return@insertSeparators Ad(Random.nextLong(), "figma.jpg")
+                }
+
+                null
+            }
+
+
+    }
 
     override suspend fun getAll() {
         try {
@@ -111,8 +146,7 @@ class PostRepositoryImpl @Inject constructor(
         return try {
             val response = apiService.dislikeById(id)
             if (!response.isSuccessful) throw RuntimeException("Ошибка дизлайка: ${response.code()}")
-            val dislikedPost =
-                response.body() ?: throw RuntimeException("Пустой ответ при дизлайке")
+            val dislikedPost = response.body() ?: throw RuntimeException("Пустой ответ при дизлайке")
             dao.insert(PostEntity.fromDto(dislikedPost))
             dislikedPost
         } catch (e: Exception) {
@@ -152,11 +186,7 @@ class PostRepositoryImpl @Inject constructor(
         dao.update(post.id, post.content, post.published)
     }
 
-    override fun shareById(id: Long) {
-        // TODO: реализация при необходимости
-    }
+    override fun shareById(id: Long) { /* TODO */ }
 
-    override fun viewById(id: Long) {
-        // TODO: реализация при необходимости
-    }
+    override fun viewById(id: Long) { /* TODO */ }
 }
